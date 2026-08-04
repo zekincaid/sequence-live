@@ -206,7 +206,7 @@
   let wsConnected = false;
   let wsRoom = null;
 
-  function connectWS(room, onState){
+  function connectWS(room, onState, onOpen){
     wsRoom = room;
     const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
     ws = new WebSocket(proto + location.host);
@@ -214,11 +214,12 @@
       wsConnected = true;
       ws.send(JSON.stringify({type:'join', room}));
       updateConnDot();
+      if(onOpen) onOpen();
     };
     ws.onclose = () => {
       wsConnected = false;
       updateConnDot();
-      setTimeout(()=>{ if(wsRoom) connectWS(wsRoom, onState); }, 1500); // auto-reconnect
+      setTimeout(()=>{ if(wsRoom) connectWS(wsRoom, onState, onOpen); }, 1500); // auto-reconnect
     };
     ws.onerror = () => { wsConnected = false; updateConnDot(); };
     ws.onmessage = (ev) => {
@@ -325,26 +326,45 @@
     for(let t=0;t<numTeams;t++){ localState.sequenceCells[t]=[]; localState.sequenceCount[t]=0; }
     myRoomCode = code;
     mySeat = 0;
-    connectWS(code, onRemoteState);
+    connectWS(code, onRemoteState, () => {
+      // as soon as we're actually connected (and on any later reconnect),
+      // make sure the server has our current state
+      if(localState) broadcastState(localState);
+    });
     renderLobbyOrGame();
   }
 
-  function onJoin(){
-    const name = document.getElementById('nameInput').value.trim() || 'Player';
-    const code = document.getElementById('codeInput').value.trim().toUpperCase();
-    const errBox = document.getElementById('errBox');
-    if(!code){ errBox.innerHTML = '<div class="error-msg">Enter a room code.</div>'; return; }
+  function renderJoining(code, errorMsg){
+    render(`
+      <div class="panel">
+        <h2>Joining ${code}...</h2>
+        <div class="hint">Connecting to the game.</div>
+        ${errorMsg ? `<div class="error-msg">${errorMsg}</div><button id="retryBtn" style="margin-top:10px;">Try again</button><button id="backBtn2" class="secondary" style="margin-top:10px;">Back</button>` : ''}
+      </div>
+    `);
+    if(errorMsg){
+      document.getElementById('retryBtn').onclick = () => onJoin(code);
+      document.getElementById('backBtn2').onclick = screenHome;
+    }
+  }
+
+  function onJoin(forcedCode){
+    const name = forcedCode ? myName : (document.getElementById('nameInput').value.trim() || 'Player');
+    const code = forcedCode || document.getElementById('codeInput').value.trim().toUpperCase();
+    if(!code){
+      const errBox = document.getElementById('errBox');
+      if(errBox) errBox.innerHTML = '<div class="error-msg">Enter a room code.</div>';
+      return;
+    }
     myName = name;
     myRoomCode = code;
-    // We don't know the room's state yet until the server sends it after join.
-    // Show a brief connecting screen, then react once state arrives.
-    render(`<div class="panel"><h2>Joining ${code}...</h2><div class="hint">Connecting to the game.</div></div>`);
+    renderJoining(code, null);
     let resolved = false;
+    if(ws){ wsRoom = null; ws.close(); ws = null; } // close any previous socket before reconnecting to a (possibly different) room
     connectWS(code, (state) => {
       onRemoteState(state);
       if(!resolved){
         resolved = true;
-        // claim a seat if not already in the game
         const already = localState.players.find(p=>p.sessionId===sessionId);
         if(!already){
           if(localState.players.length >= localState.numPlayers){
@@ -364,9 +384,9 @@
     });
     setTimeout(()=>{
       if(!resolved){
-        errBox.innerHTML = '<div class="error-msg">No response from that room. Double-check the code, or the game may not have been created yet.</div>';
+        renderJoining(code, "No response from that room. Double-check the code with whoever created the game — it's case-insensitive but must match exactly, and the host needs to have already clicked \"Create New Game\" first.");
       }
-    }, 4000);
+    }, 5000);
   }
 
   function onRemoteState(state){
