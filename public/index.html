@@ -105,8 +105,8 @@
   .cell.corner{background:linear-gradient(135deg, var(--gold-light), var(--gold)); color:#241d06;}
   .cell.playable{cursor:pointer; box-shadow:0 0 0 2px var(--select-red) inset;}
   .cell.playable:hover{background:#fffdf3;}
-  .cell-rank{position:absolute; top:2px; left:3px; font-size:clamp(7px,1.1vw,10px); line-height:1;}
-  .cell-face{font-size:clamp(11px,2.2vw,18px);}
+  .cell-rank{position:absolute; top:2px; left:3px; font-size:clamp(8px,1.3vw,11px); line-height:1; font-weight:800;}
+  .cell-face{font-size:clamp(15px,3vw,26px); font-weight:800;}
   .chip{position:absolute; width:66%; height:66%; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.5), 0 0 0 2px rgba(255,255,255,.5) inset;}
   .chip.t0{background:radial-gradient(circle at 35% 30%, var(--t0-light), var(--t0));}
   .chip.t1{background:radial-gradient(circle at 35% 30%, var(--t1-light), var(--t1));}
@@ -115,15 +115,18 @@
   .suit-red{color:#a83232;} .suit-black{color:#20241f;}
 
   .hand-row{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; justify-content:center;}
-  .card{width:56px; height:78px; background:var(--cream); border-radius:7px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-family:'Helvetica Neue',Arial,sans-serif; font-weight:700; color:var(--ink); cursor:pointer; border:2px solid transparent; transition:transform .12s; user-select:none; position:relative; box-shadow:0 2px 4px rgba(0,0,0,.3);}
+  .card{width:64px; height:88px; background:var(--cream); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-family:'Helvetica Neue',Arial,sans-serif; font-weight:700; color:var(--ink); cursor:pointer; border:2px solid transparent; transition:transform .12s; user-select:none; position:relative; box-shadow:0 2px 4px rgba(0,0,0,.3);}
   .card:hover{transform:translateY(-4px);}
   .card.selected{border-color:var(--select-red); transform:translateY(-8px); box-shadow:0 4px 12px rgba(0,0,0,.45), 0 0 0 2px var(--select-red-light);}
-  .card .rank{font-size:15px;}
+  .card .rank{font-size:20px; font-weight:800;}
   .card .face-icon{font-size:22px;}
-  .card .suit-icon{font-size:16px;}
+  .card .suit-icon{font-size:24px;}
   .card.disabled{opacity:.35; cursor:not-allowed; transform:none;}
   .card.dead{border-color:#8c2f2f;}
   .card.dead .dead-badge{position:absolute; bottom:-9px; left:50%; transform:translateX(-50%); background:#8c2f2f; color:#fff; font-size:8px; padding:1px 5px; border-radius:8px; letter-spacing:.04em; white-space:nowrap;}
+  .card .jack-badge{position:absolute; bottom:-9px; left:50%; transform:translateX(-50%); font-size:8px; font-weight:800; padding:1px 6px; border-radius:8px; letter-spacing:.04em; white-space:nowrap; color:#fff;}
+  .card .jack-badge.wild{background:#2e7d4f;}
+  .card .jack-badge.remove{background:#8c2f2f;}
 
   .turn-banner{font-family:'Helvetica Neue',Arial,sans-serif; font-weight:700; font-size:14px; padding:6px 16px; border-radius:20px; margin:0 auto 8px; text-align:center; width:fit-content;}
   .turn-banner.mine{background:var(--gold); color:#241d06;}
@@ -745,10 +748,16 @@
       const dead = myTurn && isDeadCard(state, code);
       const disabled = !myTurn;
       const face = faceIconFor(rank);
+      const isTwoEyed = TWO_EYED_JACKS.has(code);
+      const isOneEyed = ONE_EYED_JACKS.has(code);
+      let badge = '';
+      if(dead) badge = `<div class="dead-badge">dead — tap to trade</div>`;
+      else if(isTwoEyed) badge = `<div class="jack-badge wild">WILD</div>`;
+      else if(isOneEyed) badge = `<div class="jack-badge remove">REMOVE</div>`;
       return `<div class="card ${isSel?'selected':''} ${disabled?'disabled':''} ${dead?'dead':''}" data-hand-idx="${i}" data-dead="${dead}">
         <div class="rank ${colorClass}">${label}${symbol}</div>
         ${face ? `<div class="face-icon">${face}</div>` : `<div class="suit-icon ${colorClass}">${symbol}</div>`}
-        ${dead ? `<div class="dead-badge">dead — tap to trade</div>` : ''}
+        ${badge}
       </div>`;
     }).join('');
 
