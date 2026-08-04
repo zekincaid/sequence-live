@@ -6,11 +6,12 @@
 <title>Sequence — Live</title>
 <style>
   :root{
-    --felt-1:#0f3d2e; --felt-2:#155c43; --cream:#f2ecd8; --ink:#20241f;
+    --felt-1:#0f3d2e; --felt-2:#155c43; --cream:#f7f3e8; --ink:#20241f;
     --gold:#c9a227; --gold-light:#e6cb6a;
-    --t0:#c1622d; --t0-light:#e8926a;
-    --t1:#2b5f7a; --t1-light:#6fa7c4;
-    --t2:#8c2f2f; --t2-light:#c46b6b;
+    --t0:#b23b3b; --t0-light:#d9776f;   /* Red */
+    --t1:#2b5f7a; --t1-light:#6fa7c4;   /* Blue */
+    --t2:#2e7d4f; --t2-light:#6fbf8e;   /* Green */
+    --panel-dark:#0c231c;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -20,74 +21,136 @@
     font-family:'Iowan Old Style','Georgia',serif;
     color:var(--cream);
     display:flex; flex-direction:column; align-items:center;
-    padding:20px 12px 50px;
+    padding:16px 12px 50px;
   }
-  h1{font-weight:600; letter-spacing:.04em; font-size:26px; margin:0 0 2px; text-transform:uppercase; text-align:center;}
-  .sub{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; letter-spacing:.14em; text-transform:uppercase; opacity:.55; margin-bottom:22px; text-align:center;}
-  .panel{background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:26px 28px; max-width:440px; width:100%; text-align:center;}
+  h1{font-weight:600; letter-spacing:.06em; font-size:24px; margin:0 0 2px; text-transform:uppercase; text-align:center;}
+  .sub{font-family:'Helvetica Neue',Arial,sans-serif; font-size:10px; letter-spacing:.14em; text-transform:uppercase; opacity:.5; margin-bottom:18px; text-align:center;}
+  .panel{background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:24px 26px; max-width:460px; width:100%; text-align:center;}
   .panel h2{margin:0 0 14px; font-size:18px; letter-spacing:.03em;}
   .row{display:flex; gap:10px; margin-bottom:12px;}
   input[type=text]{flex:1; font-family:'Helvetica Neue',Arial,sans-serif; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.25); color:var(--cream); border-radius:8px; padding:10px 12px; font-size:14px; outline:none;}
   input[type=text]:focus{border-color:var(--gold);}
   input.code-input{text-transform:uppercase; letter-spacing:.12em; text-align:center;}
+  select{font-family:'Helvetica Neue',Arial,sans-serif; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.25); color:var(--cream); border-radius:6px; padding:6px 8px; font-size:13px;}
+  select:disabled{opacity:.6;}
   button{font-family:'Helvetica Neue',Arial,sans-serif; font-weight:600; letter-spacing:.04em; font-size:13px; text-transform:uppercase; background:var(--gold); color:#241d06; border:none; border-radius:8px; padding:11px 18px; cursor:pointer; transition:transform .08s, background .15s;}
   button:hover{background:var(--gold-light);}
   button:active{transform:scale(.97);}
   button.secondary{background:transparent; color:var(--cream); border:1px solid rgba(255,255,255,.3);}
   button.secondary:hover{background:rgba(255,255,255,.08);}
-  button.chip-select{background:rgba(255,255,255,.08); color:var(--cream); border:1px solid rgba(255,255,255,.25); margin:4px;}
-  button.chip-select.active{background:var(--gold); color:#241d06; border-color:var(--gold);}
   button:disabled{opacity:.4; cursor:not-allowed;}
-  .or-divider{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; letter-spacing:.1em; opacity:.45; margin:18px 0; text-transform:uppercase;}
+  button.small{font-size:11px; padding:6px 10px; text-transform:none; letter-spacing:0;}
+  .or-divider{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; letter-spacing:.1em; opacity:.45; margin:16px 0; text-transform:uppercase;}
   .error-msg{color:#e0a5a5; font-family:'Helvetica Neue',Arial,sans-serif; font-size:12.5px; margin-top:10px;}
-  .room-code-display{font-size:34px; letter-spacing:.18em; font-weight:700; color:var(--gold-light); margin:6px 0 16px;}
-  .lobby-seats{font-family:'Helvetica Neue',Arial,sans-serif; font-size:13px; margin:14px 0; text-align:left;}
-  .lobby-seats .p{display:flex; align-items:center; gap:8px; padding:6px 10px; background:rgba(255,255,255,.06); border-radius:6px; margin-bottom:6px;}
-  .lobby-seats .p.me{border:1px solid var(--gold);}
+  .hint{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11.5px; opacity:.6; line-height:1.5; margin-top:12px;}
   .dot{width:9px; height:9px; border-radius:50%; flex-shrink:0; display:inline-block;}
   .dot.t0{background:var(--t0);} .dot.t1{background:var(--t1);} .dot.t2{background:var(--t2);}
-  .hint{font-family:'Helvetica Neue',Arial,sans-serif; font-size:12px; opacity:.6; line-height:1.5; margin-top:14px;}
-  .setup-label{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; text-transform:uppercase; letter-spacing:.1em; opacity:.6; margin:14px 0 6px; text-align:left;}
-  .chip-select-row{display:flex; flex-wrap:wrap; justify-content:center;}
-  .conn-dot{width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px;}
-  .conn-dot.up{background:#6bd08a;} .conn-dot.down{background:#d06b6b;}
-  .conn-status{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; opacity:.6; margin-top:10px;}
 
-  .game-wrap{width:100%; max-width:780px; display:flex; flex-direction:column; align-items:center;}
-  .scoreboard{display:flex; gap:10px; margin-bottom:14px; font-family:'Helvetica Neue',Arial,sans-serif; width:100%; justify-content:center; flex-wrap:wrap;}
-  .score-card{background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:8px 14px; text-align:center; min-width:110px;}
-  .score-card.active{border-color:var(--gold); box-shadow:0 0 0 1px var(--gold) inset;}
-  .score-card .name{font-size:12px; font-weight:600; display:flex; align-items:center; gap:6px; justify-content:center;}
-  .score-card .seqs{font-size:18px; font-weight:700; margin-top:2px;}
-  .status-line{font-family:'Helvetica Neue',Arial,sans-serif; font-size:13px; margin-bottom:12px; text-align:center; min-height:18px;}
-  .board{display:grid; grid-template-columns:repeat(10, 1fr); gap:3px; background:#0a2b20; padding:8px; border-radius:10px; border:2px solid rgba(0,0,0,.4); width:100%; max-width:560px; aspect-ratio:1/1;}
-  .cell{position:relative; background:var(--cream); border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:clamp(8px,1.6vw,12px); font-weight:700; color:var(--ink); cursor:default; aspect-ratio:1/1;}
+  .lobby-wrap{width:100%; max-width:960px; display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  @media (max-width:760px){ .lobby-wrap{grid-template-columns:1fr;} }
+  .lobby-title{grid-column:1 / -1; text-align:center; font-size:30px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-light); margin-bottom:4px;}
+  .card-block{background:rgba(0,0,0,.26); border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:16px 18px;}
+  .card-block h3{margin:0 0 10px; font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-light); text-align:center;}
+  .player-row{display:flex; align-items:center; gap:8px; background:rgba(255,255,255,.06); border-radius:8px; padding:7px 10px; margin-bottom:6px; font-family:'Helvetica Neue',Arial,sans-serif; font-size:13px;}
+  .player-row .avatar-sm{font-size:16px;}
+  .tag{font-size:9px; text-transform:uppercase; letter-spacing:.05em; padding:2px 6px; border-radius:10px; font-weight:700;}
+  .tag.host{background:var(--gold); color:#241d06;}
+  .tag.you{background:rgba(255,255,255,.2); color:var(--cream);}
+  .remove-btn{margin-left:auto; background:none; border:none; color:#e0a5a5; font-size:11px; text-transform:none; letter-spacing:0; padding:2px 6px; cursor:pointer;}
+
+  .teams-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;}
+  .team-col{border-radius:10px; padding:10px 8px; text-align:center; display:flex; flex-direction:column; gap:6px;}
+  .team-col.t0{background:rgba(178,59,59,.18); border:1px solid rgba(178,59,59,.4);}
+  .team-col.t1{background:rgba(43,95,122,.18); border:1px solid rgba(43,95,122,.4);}
+  .team-col.t2{background:rgba(46,125,79,.18); border:1px solid rgba(46,125,79,.4);}
+  .team-col .team-label{font-family:'Helvetica Neue',Arial,sans-serif; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.05em;}
+  .team-col.t0 .team-label{color:var(--t0-light);}
+  .team-col.t1 .team-label{color:var(--t1-light);}
+  .team-col.t2 .team-label{color:var(--t2-light);}
+  .team-slot{background:rgba(255,255,255,.08); border-radius:6px; padding:5px 4px; font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; min-height:16px;}
+  .team-slot.empty{opacity:.35;}
+  .team-join-btn{font-size:10px; padding:6px 4px;}
+
+  .avatar-picker{display:flex; align-items:center; justify-content:center; gap:14px; margin-top:4px;}
+  .avatar-display{font-size:36px; width:60px; height:60px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.08); border-radius:50%;}
+  .avatar-nav{background:rgba(255,255,255,.1); border:none; color:var(--cream); width:30px; height:30px; border-radius:50%; font-size:14px; cursor:pointer;}
+
+  .settings-row{display:flex; align-items:center; justify-content:space-between; font-family:'Helvetica Neue',Arial,sans-serif; font-size:12.5px; margin-bottom:10px;}
+  .invite-box{background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.2); border-radius:8px; padding:8px 10px; font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; word-break:break-all; margin-bottom:8px;}
+  .copied-tag{color:var(--gold-light); font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; margin-top:4px;}
+
+  .game-shell{width:100%; max-width:1200px; display:grid; grid-template-columns:170px 1fr; gap:20px;}
+  @media (max-width:880px){ .game-shell{grid-template-columns:1fr;} }
+  .side-players{display:flex; flex-direction:column; gap:14px;}
+  .side-player{display:flex; flex-direction:column; align-items:center; gap:4px; opacity:.6; transition:opacity .2s;}
+  .side-player.active{opacity:1;}
+  .side-avatar-ring{width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:26px; background:rgba(255,255,255,.06); border:3px solid transparent;}
+  .side-player.active .side-avatar-ring{border-color:var(--gold); box-shadow:0 0 14px rgba(201,162,39,.6);}
+  .side-name{font-family:'Helvetica Neue',Arial,sans-serif; font-size:12px; font-weight:600; text-align:center;}
+  .side-tags{display:flex; gap:4px; flex-wrap:wrap; justify-content:center;}
+  .side-seq{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; opacity:.8;}
+  .side-timer{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; font-weight:700; color:var(--gold-light);}
+
+  .top-bar{display:flex; align-items:center; justify-content:space-between; width:100%; margin-bottom:10px;}
+  .top-bar-icons{display:flex; gap:10px; align-items:center;}
+  .icon-btn{background:rgba(255,255,255,.08); border:none; color:var(--cream); width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;}
+  .icon-btn:hover{background:rgba(255,255,255,.16);}
+
+  .hint-bar{background:rgba(0,0,0,.4); border-radius:20px; padding:7px 14px; font-family:'Helvetica Neue',Arial,sans-serif; font-size:12px; display:inline-flex; align-items:center; gap:10px; margin:0 auto 14px; }
+  .hint-bar button{background:none; border:none; color:var(--cream); opacity:.6; font-size:14px; padding:0; cursor:pointer;}
+
+  .board{display:grid; grid-template-columns:repeat(10, 1fr); gap:3px; background:#0a2b20; padding:8px; border-radius:10px; border:2px solid rgba(0,0,0,.4); width:100%; max-width:600px; aspect-ratio:1/1; margin:0 auto;}
+  .cell{position:relative; background:var(--cream); border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:clamp(9px,1.7vw,13px); font-weight:700; color:var(--ink); cursor:default; aspect-ratio:1/1; box-shadow:0 1px 2px rgba(0,0,0,.25) inset;}
   .cell.corner{background:linear-gradient(135deg, var(--gold-light), var(--gold)); color:#241d06;}
   .cell.playable{cursor:pointer; box-shadow:0 0 0 2px var(--gold-light) inset;}
-  .cell.playable:hover{background:#fffbe8;}
-  .chip{position:absolute; width:68%; height:68%; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.5), 0 0 0 2px rgba(255,255,255,.5) inset;}
+  .cell.playable:hover{background:#fffdf3;}
+  .cell-rank{position:absolute; top:2px; left:3px; font-size:clamp(7px,1.1vw,10px); line-height:1;}
+  .cell-face{font-size:clamp(11px,2.2vw,18px);}
+  .chip{position:absolute; width:66%; height:66%; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.5), 0 0 0 2px rgba(255,255,255,.5) inset;}
   .chip.t0{background:radial-gradient(circle at 35% 30%, var(--t0-light), var(--t0));}
   .chip.t1{background:radial-gradient(circle at 35% 30%, var(--t1-light), var(--t1));}
   .chip.t2{background:radial-gradient(circle at 35% 30%, var(--t2-light), var(--t2));}
   .chip.locked{box-shadow:0 1px 3px rgba(0,0,0,.5), 0 0 0 3px var(--gold-light) inset;}
-  .card-suit-red{color:#8c2f2f;} .card-suit-black{color:#20241f;}
+  .suit-red{color:#a83232;} .suit-black{color:#20241f;}
 
-  .hand-row{display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; justify-content:center;}
-  .card{width:52px; height:74px; background:var(--cream); border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Helvetica Neue',Arial,sans-serif; font-weight:700; font-size:16px; color:var(--ink); cursor:pointer; border:2px solid transparent; transition:transform .12s; user-select:none; position:relative;}
+  .hand-row{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; justify-content:center;}
+  .card{width:56px; height:78px; background:var(--cream); border-radius:7px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-family:'Helvetica Neue',Arial,sans-serif; font-weight:700; color:var(--ink); cursor:pointer; border:2px solid transparent; transition:transform .12s; user-select:none; position:relative; box-shadow:0 2px 4px rgba(0,0,0,.3);}
   .card:hover{transform:translateY(-4px);}
-  .card.selected{border-color:var(--gold); transform:translateY(-8px); box-shadow:0 4px 10px rgba(0,0,0,.4);}
-  .card .sm{font-size:10px; opacity:.7; margin-top:2px;}
+  .card.selected{border-color:var(--gold); transform:translateY(-8px); box-shadow:0 4px 12px rgba(0,0,0,.45);}
+  .card .rank{font-size:15px;}
+  .card .face-icon{font-size:22px;}
+  .card .suit-icon{font-size:16px;}
   .card.disabled{opacity:.35; cursor:not-allowed; transform:none;}
   .card.dead{border-color:#8c2f2f;}
   .card.dead .dead-badge{position:absolute; bottom:-9px; left:50%; transform:translateX(-50%); background:#8c2f2f; color:#fff; font-size:8px; padding:1px 5px; border-radius:8px; letter-spacing:.04em; white-space:nowrap;}
 
-  .turn-banner{font-family:'Helvetica Neue',Arial,sans-serif; font-weight:700; font-size:14px; padding:6px 14px; border-radius:20px; margin-bottom:10px;}
+  .turn-banner{font-family:'Helvetica Neue',Arial,sans-serif; font-weight:700; font-size:14px; padding:6px 16px; border-radius:20px; margin:0 auto 8px; text-align:center; width:fit-content;}
   .turn-banner.mine{background:var(--gold); color:#241d06;}
   .turn-banner.theirs{background:rgba(255,255,255,.1); color:var(--cream);}
+  .status-line{font-family:'Helvetica Neue',Arial,sans-serif; font-size:12.5px; text-align:center; min-height:16px; opacity:.85; margin-bottom:8px;}
   .win-banner{font-size:22px; font-weight:700; color:var(--gold-light); margin:10px 0; text-align:center;}
-  .link-note{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; opacity:.5; margin-top:18px; text-align:center; max-width:440px;}
-  .copy-code-btn{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; background:none; border:1px solid rgba(255,255,255,.3); color:var(--cream); padding:4px 10px; border-radius:6px; text-transform:none; letter-spacing:0;}
-  .my-team-note{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; opacity:.6; margin-top:6px;}
+
+  .log-panel{background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.1); border-radius:10px; margin:18px auto 0; max-width:600px; width:100%; padding:10px 14px; font-family:'Helvetica Neue',Arial,sans-serif; font-size:11.5px; max-height:120px; overflow-y:auto;}
+  .log-panel .log-title{font-size:10px; text-transform:uppercase; letter-spacing:.1em; opacity:.5; margin-bottom:6px;}
+  .log-line{opacity:.8; padding:2px 0; border-bottom:1px solid rgba(255,255,255,.05);}
+
+  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:50; padding:16px;}
+  .modal-box{background:#152e24; border:1px solid rgba(255,255,255,.15); border-radius:14px; padding:24px 26px; max-width:420px; width:100%;}
+  .modal-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;}
+  .modal-header h2{margin:0; font-size:19px; color:var(--gold-light);}
+  .modal-close{background:none; border:none; color:var(--cream); font-size:20px; cursor:pointer; opacity:.6;}
+  .modal-section-label{font-family:'Helvetica Neue',Arial,sans-serif; font-size:10.5px; text-transform:uppercase; letter-spacing:.1em; opacity:.55; margin:14px 0 8px;}
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; font-family:'Helvetica Neue',Arial,sans-serif; font-size:13px;}
+  .toggle-sub{font-size:11px; opacity:.55; margin-top:2px;}
+  .switch{position:relative; width:42px; height:24px; flex-shrink:0;}
+  .switch input{opacity:0; width:0; height:0;}
+  .slider-toggle{position:absolute; cursor:pointer; inset:0; background:rgba(255,255,255,.25); border-radius:24px; transition:.2s;}
+  .slider-toggle:before{content:''; position:absolute; width:18px; height:18px; left:3px; bottom:3px; background:white; border-radius:50%; transition:.2s;}
+  input:checked + .slider-toggle{background:#4fbf7a;}
+  input:checked + .slider-toggle:before{transform:translateX(18px);}
+  .vol-slider{width:100%; margin-top:8px;}
+  .settings-info-row{display:flex; justify-content:space-between; font-family:'Helvetica Neue',Arial,sans-serif; font-size:12.5px; margin-bottom:8px;}
+  .settings-info-row .val{font-weight:700; color:var(--gold-light);}
 </style>
 </head>
 <body>
@@ -98,7 +161,6 @@
 <script>
 (function(){
 
-  // ---------- CONSTANTS ----------
   const SUITS = ['S','H','D','C'];
   const RANKS = ['2','3','4','5','6','7','8','9','10','A','K','Q'];
   const RANK_LABEL = {'2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9','10':'10','A':'A','K':'K','Q':'Q'};
@@ -106,24 +168,9 @@
   const RED_SUITS = new Set(['H','D']);
   const TWO_EYED_JACKS = new Set(['JD','JC']);
   const ONE_EYED_JACKS = new Set(['JH','JS']);
-  const TEAM_NAMES = ['Orange','Blue','Red'];
-  const HAND_SIZE = {2:7, 3:6, 4:6, 6:5};
-
-  function seatTeamPattern(numPlayers, teamConfig){
-    if(numPlayers===2) return [0,1];
-    if(numPlayers===3) return [0,1,2];
-    if(numPlayers===4) return [0,1,0,1];
-    if(numPlayers===6){
-      if(teamConfig==='3x2') return [0,1,2,0,1,2];
-      return [0,1,0,1,0,1];
-    }
-    return [0,1];
-  }
-  function numTeamsFor(numPlayers, teamConfig){
-    if(numPlayers===3) return 3;
-    if(numPlayers===6 && teamConfig==='3x2') return 3;
-    return 2;
-  }
+  const TEAM_NAMES = ['Red','Blue','Green'];
+  const HAND_SIZE = {2:7, 3:6, 4:6, 6:5, 9:4};
+  const AVATARS = ['❤️','🔥','⭐','🐉','🎯','🦊','🌙','⚡','🍀','🦁','🎲','🧊'];
 
   function cardCode(rank, suit){ return rank+suit; }
   function cardLabel(code){
@@ -161,10 +208,8 @@
   function initBoardCells(layout){
     return layout.map((card) => ({ card, wild: card==='WILD', owner: card==='WILD' ? -1 : null }));
   }
-
   function rowCol(idx){ return [Math.floor(idx/10), idx%10]; }
   function idxOf(r,c){ return r*10+c; }
-
   function findNewSequences(board, team, placedIdx){
     const dirs = [[0,1],[1,0],[1,1],[1,-1]];
     const [pr,pc] = rowCol(placedIdx);
@@ -201,11 +246,44 @@
   }
   function isLocked(state, team, idx){ return state.sequenceCells[team].includes(idx); }
 
-  // ---------- WEBSOCKET ----------
+  let audioCtx = null;
+  let soundOn = true;
+  let masterVolume = 0.6;
+  try{
+    const savedSound = localStorage.getItem('seq_sound_on');
+    const savedVol = localStorage.getItem('seq_sound_vol');
+    if(savedSound !== null) soundOn = savedSound === '1';
+    if(savedVol !== null) masterVolume = parseFloat(savedVol);
+  }catch(e){}
+  function ensureAudio(){ if(!audioCtx){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } }
+  function beep(freq, dur, type, vol){
+    if(!soundOn) return;
+    ensureAudio();
+    if(!audioCtx) return;
+    const t = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.value = freq;
+    osc.type = type || 'sine';
+    gain.gain.value = (vol==null?0.15:vol) * masterVolume;
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.stop(t + dur + 0.02);
+  }
+  function sfxSelect(){ beep(600, 0.05, 'sine', 0.12); }
+  function sfxPlace(){ beep(880, 0.09, 'triangle', 0.18); }
+  function sfxInvalid(){ beep(150, 0.16, 'sawtooth', 0.12); }
+  function sfxSequence(){ [660,880,1100].forEach((f,i)=>setTimeout(()=>beep(f,0.14,'triangle',0.18), i*90)); }
+  function sfxWin(){ [523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,0.22,'triangle',0.2), i*130)); }
+  function sfxYourTurn(){ beep(720, 0.12, 'sine', 0.14); }
+  function sfxTimeout(){ beep(200, 0.3, 'sawtooth', 0.15); }
+  function setSoundOn(v){ soundOn = v; try{ localStorage.setItem('seq_sound_on', v?'1':'0'); }catch(e){} }
+  function setVolume(v){ masterVolume = v; try{ localStorage.setItem('seq_sound_vol', String(v)); }catch(e){} }
+
   let ws = null;
   let wsConnected = false;
   let wsRoom = null;
-
   function connectWS(room, onState, onOpen){
     wsRoom = room;
     const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
@@ -219,7 +297,7 @@
     ws.onclose = () => {
       wsConnected = false;
       updateConnDot();
-      setTimeout(()=>{ if(wsRoom) connectWS(wsRoom, onState, onOpen); }, 1500); // auto-reconnect
+      setTimeout(()=>{ if(wsRoom) connectWS(wsRoom, onState, onOpen); }, 1500);
     };
     ws.onerror = () => { wsConnected = false; updateConnDot(); };
     ws.onmessage = (ev) => {
@@ -229,71 +307,45 @@
     };
   }
   function broadcastState(state){
-    if(ws && wsConnected){
-      ws.send(JSON.stringify({type:'state', room: wsRoom, state}));
-    }
+    if(ws && wsConnected){ ws.send(JSON.stringify({type:'state', room: wsRoom, state})); }
   }
   function updateConnDot(){
     const el = document.getElementById('connDot');
     if(!el) return;
-    el.className = 'conn-dot ' + (wsConnected ? 'up' : 'down');
-    const label = document.getElementById('connLabel');
-    if(label) label.textContent = wsConnected ? 'Connected' : 'Reconnecting...';
+    el.style.background = wsConnected ? '#6bd08a' : '#d06b6b';
   }
 
-  // ---------- APP STATE ----------
   let sessionId = 'p_' + Math.random().toString(36).slice(2,10);
   let myName = '';
   let myRoomCode = '';
-  let mySeat = null;
+  let localState = null;
   let selectedCardIdx = null;
-  let localState = null; // latest known game state
-  let setupNumPlayers = 2;
-  let setupTeamConfig = '2x3';
+  let hintDismissed = false;
+  let settingsModalOpen = false;
+  let turnTickTimer = null;
+  let lastSkippedTurnKey = null;
+  let lastKnownTurn = null;
+  let inLobbyOrGame = false; // true once we've successfully created/joined; guards against rendering on stray messages
 
   const app = document.getElementById('app');
   function render(html){ app.innerHTML = html; }
 
-  // ---------- HOME / SETUP ----------
   function screenHome(){
     render(`
       <div class="panel">
         <h2>Start or Join a Game</h2>
         <div class="row"><input type="text" id="nameInput" placeholder="Your name" maxlength="18" /></div>
-
-        <div class="setup-label">Number of players</div>
-        <div class="chip-select-row" id="npRow">
-          ${[2,3,4,6].map(n=>`<button class="chip-select ${setupNumPlayers===n?'active':''}" data-np="${n}">${n} players</button>`).join('')}
-        </div>
-
-        <div id="teamConfigRow" style="${setupNumPlayers===6?'':'display:none;'}">
-          <div class="setup-label">Team setup</div>
-          <div class="chip-select-row" id="tcRow">
-            <button class="chip-select ${setupTeamConfig==='2x3'?'active':''}" data-tc="2x3">2 teams of 3</button>
-            <button class="chip-select ${setupTeamConfig==='3x2'?'active':''}" data-tc="3x2">3 teams of 2</button>
-          </div>
-        </div>
-
-        <button id="createBtn" style="margin-top:10px;">Create New Game</button>
+        <button id="createBtn">Create New Game</button>
         <div class="or-divider">— or —</div>
         <div class="row">
           <input type="text" id="codeInput" class="code-input" placeholder="ROOM CODE" maxlength="5" />
           <button id="joinBtn" class="secondary">Join</button>
         </div>
         <div id="errBox"></div>
-        <div class="hint">Create a game to get a room code, then send this page's link plus the code to your friends. Moves sync live — no accounts needed.</div>
+        <div class="hint">Create a game to get a room code, then send this page's link plus the code to your friends. Pick teams and settings together in the lobby, then start.</div>
       </div>
     `);
-    document.querySelectorAll('#npRow [data-np]').forEach(btn=>{
-      btn.onclick = ()=>{ setupNumPlayers = parseInt(btn.getAttribute('data-np')); screenHome(); };
-    });
-    const tcRow = document.getElementById('tcRow');
-    if(tcRow){
-      tcRow.querySelectorAll('[data-tc]').forEach(btn=>{
-        btn.onclick = ()=>{ setupTeamConfig = btn.getAttribute('data-tc'); screenHome(); };
-      });
-    }
-    document.getElementById('createBtn').onclick = onCreate;
+    document.getElementById('createBtn').onclick = () => onCreate();
     document.getElementById('joinBtn').onclick = () => onJoin();
   }
 
@@ -308,30 +360,16 @@
     const name = document.getElementById('nameInput').value.trim() || 'Player 1';
     myName = name;
     const code = genCode();
-    const numPlayers = setupNumPlayers;
-    const teamConfig = numPlayers===6 ? setupTeamConfig : null;
-    const seatTeams = seatTeamPattern(numPlayers, teamConfig);
-    const numTeams = numTeamsFor(numPlayers, teamConfig);
     localState = {
-      code, status: 'lobby',
-      numPlayers, teamConfig, seatTeams, numTeams,
-      handSize: HAND_SIZE[numPlayers],
-      sequencesToWin: numTeams===2 ? 2 : 1,
-      players: [{seat:0, name, sessionId, team:seatTeams[0]}],
+      code, status:'lobby',
+      players: [{sessionId, name, avatar: AVATARS[0], team: null}],
       hostSessionId: sessionId,
-      deck: null, hands: null, board: null,
-      turn: 0, deadTradeUsedThisTurn: false,
-      sequenceCells: {}, sequenceCount: {}, winner: null
+      teamSize: 2, sequencesToWin: 2, turnTimerSeconds: 0
     };
-    for(let t=0;t<numTeams;t++){ localState.sequenceCells[t]=[]; localState.sequenceCount[t]=0; }
     myRoomCode = code;
-    mySeat = 0;
-    connectWS(code, onRemoteState, () => {
-      // as soon as we're actually connected (and on any later reconnect),
-      // make sure the server has our current state
-      if(localState) broadcastState(localState);
-    });
-    renderLobbyOrGame();
+    inLobbyOrGame = true;
+    connectWS(code, onRemoteState, () => { if(localState) broadcastState(localState); });
+    renderCurrent();
   }
 
   function renderJoining(code, errorMsg){
@@ -344,7 +382,7 @@
     `);
     if(errorMsg){
       document.getElementById('retryBtn').onclick = () => onJoin(code);
-      document.getElementById('backBtn2').onclick = screenHome;
+      document.getElementById('backBtn2').onclick = () => screenHome();
     }
   }
 
@@ -360,80 +398,191 @@
     myRoomCode = code;
     renderJoining(code, null);
     let resolved = false;
-    if(ws){ wsRoom = null; ws.close(); ws = null; } // close any previous socket before reconnecting to a (possibly different) room
+    if(ws){ wsRoom = null; ws.close(); ws = null; }
     connectWS(code, (state) => {
-      onRemoteState(state);
       if(!resolved){
         resolved = true;
+        localState = state;
         const already = localState.players.find(p=>p.sessionId===sessionId);
         if(!already){
-          if(localState.players.length >= localState.numPlayers){
-            render(`<div class="panel"><div class="error-msg">That game is full (${localState.numPlayers} players).</div><button id="backBtn" class="secondary" style="margin-top:10px;">Back</button></div>`);
-            document.getElementById('backBtn').onclick = screenHome;
-            return;
-          }
-          const seat = localState.players.length;
-          localState.players.push({seat, name, sessionId, team: localState.seatTeams[seat]});
-          mySeat = seat;
+          localState.players.push({sessionId, name, avatar: AVATARS[Math.floor(Math.random()*AVATARS.length)], team: null});
           broadcastState(localState);
-        } else {
-          mySeat = already.seat;
         }
-        renderLobbyOrGame();
+        inLobbyOrGame = true;
+        renderCurrent();
+      } else {
+        onRemoteState(state);
       }
     });
     setTimeout(()=>{
       if(!resolved){
-        renderJoining(code, "No response from that room. Double-check the code with whoever created the game — it's case-insensitive but must match exactly, and the host needs to have already clicked \"Create New Game\" first.");
+        renderJoining(code, "No response from that room. Double-check the code with whoever created the game.");
       }
     }, 5000);
   }
 
   function onRemoteState(state){
     localState = state;
-    // if we're mid-game already seated, re-render live
-    if(mySeat !== null) renderLobbyOrGame();
+    if(inLobbyOrGame) renderCurrent();
   }
 
-  function renderLobbyOrGame(){
+  function me(){ return localState.players.find(p=>p.sessionId===sessionId); }
+  function isHost(){ return localState.hostSessionId === sessionId; }
+
+  function renderCurrent(){
     if(!localState) return;
     if(localState.status === 'lobby') renderLobby();
     else renderGame();
   }
 
+  function teamMembers(team){ return localState.players.filter(p=>p.team===team); }
+  function activeTeams(){ return [0,1,2].filter(t => teamMembers(t).length > 0); }
+
   function renderLobby(){
     const state = localState;
-    const canStart = state.players.length===state.numPlayers && mySeat===0;
-    const seatsHtml = [];
-    for(let s=0;s<state.numPlayers;s++){
-      const p = state.players.find(pl=>pl.seat===s);
-      const team = state.seatTeams[s];
-      seatsHtml.push(`<div class="p ${s===mySeat?'me':''}"><span class="dot t${team}"></span> ${p ? p.name : 'Waiting for a player...'} ${p?`<span style="opacity:.5; font-size:11px;">— Team ${TEAM_NAMES[team]}</span>`:''}</div>`);
-    }
+    const url = location.origin + location.pathname;
+
+    const playersHtml = state.players.map(p => `
+      <div class="player-row">
+        <span class="avatar-sm">${p.avatar}</span>
+        <span>${p.name}</span>
+        ${p.sessionId===state.hostSessionId ? '<span class="tag host">HOST</span>' : ''}
+        ${p.sessionId===sessionId ? '<span class="tag you">YOU</span>' : ''}
+        ${isHost() && p.sessionId!==sessionId ? `<button class="remove-btn" data-remove="${p.sessionId}">Remove</button>` : ''}
+      </div>
+    `).join('');
+
+    const teamsHtml = [0,1,2].map(t => {
+      const members = teamMembers(t);
+      const slots = [];
+      for(let i=0;i<state.teamSize;i++){
+        const p = members[i];
+        slots.push(`<div class="team-slot ${p?'':'empty'}">${p ? p.avatar+' '+p.name : 'Open slot'}</div>`);
+      }
+      const myTeam = me().team;
+      const full = members.length >= state.teamSize;
+      const joinBtn = myTeam === t
+        ? `<button class="team-join-btn secondary" data-leave="1">Leave Team</button>`
+        : `<button class="team-join-btn" data-jointeam="${t}" ${full?'disabled':''}>${full?'Full':'Join '+TEAM_NAMES[t]}</button>`;
+      return `<div class="team-col t${t}">
+        <div class="team-label">${TEAM_NAMES[t]}</div>
+        ${slots.join('')}
+        ${joinBtn}
+      </div>`;
+    }).join('');
+
+    const active = activeTeams();
+    const teamsReady = active.length >= 2 && active.every(t => teamMembers(t).length === state.teamSize);
+    const totalPlayers = active.length * state.teamSize;
+    const handSizeOk = HAND_SIZE[totalPlayers] !== undefined;
+
+    let startDisabledReason = '';
+    if(!teamsReady) startDisabledReason = "Fill every team you've joined up to the team size (or leave a team empty to skip it).";
+    else if(!handSizeOk) startDisabledReason = `A ${totalPlayers}-player game isn't supported — try a different team size / number of teams.`;
+
     render(`
-      <div class="panel">
-        <h2>Waiting Room</h2>
-        <div class="room-code-display">${state.code}</div>
-        <button class="copy-code-btn" id="copyBtn">Copy code</button>
-        <div class="hint" style="margin-top:10px;">${state.numPlayers} players · ${state.numTeams} team${state.numTeams>1?'s':''} · ${state.sequencesToWin} sequence${state.sequencesToWin>1?'s':''} to win · ${state.handSize}-card hands</div>
-        <div class="lobby-seats">${seatsHtml.join('')}</div>
-        ${mySeat===0
-          ? `<button id="startBtn" ${canStart?'':'disabled'}>${state.players.length===state.numPlayers ? 'Start Game' : `Waiting for ${state.numPlayers - state.players.length} more...`}</button>`
-          : `<div class="hint">Waiting for the host to start the game.</div>`
-        }
-        <div class="conn-status"><span class="conn-dot" id="connDot"></span><span id="connLabel"></span></div>
-        <div class="link-note">Share this page's link + the code above with everyone. Each person opens the same link and enters the code.</div>
+      <div class="lobby-wrap">
+        <div class="lobby-title">Lobby</div>
+
+        <div class="card-block">
+          <h3>Players</h3>
+          ${playersHtml}
+        </div>
+
+        <div class="card-block">
+          <h3>Invite</h3>
+          <div class="hint" style="margin-top:0;">Share this link + room code:</div>
+          <div class="invite-box">${url}</div>
+          <div class="invite-box" style="text-align:center; font-size:16px; letter-spacing:.1em; font-weight:700; color:var(--gold-light);">${state.code}</div>
+          <button id="copyBtn" class="small secondary">Copy code</button>
+          <div id="copiedTag"></div>
+        </div>
+
+        <div class="card-block" style="grid-column:1 / -1;">
+          <h3>Teams</h3>
+          <div class="teams-grid">${teamsHtml}</div>
+        </div>
+
+        <div class="card-block">
+          <h3>Avatar</h3>
+          <div class="avatar-picker">
+            <button class="avatar-nav" id="avPrev">‹</button>
+            <div class="avatar-display">${me().avatar}</div>
+            <button class="avatar-nav" id="avNext">›</button>
+          </div>
+        </div>
+
+        <div class="card-block">
+          <h3>Settings</h3>
+          <div class="settings-row">
+            <span>Win Condition</span>
+            ${isHost()
+              ? `<select id="winCondSel"><option value="1" ${state.sequencesToWin===1?'selected':''}>First Sequence Wins</option><option value="2" ${state.sequencesToWin===2?'selected':''}>Two Sequences to Win</option></select>`
+              : `<strong>${state.sequencesToWin===1?'First Sequence Wins':'Two Sequences to Win'}</strong>`}
+          </div>
+          <div class="settings-row">
+            <span>Team Size</span>
+            ${isHost()
+              ? `<select id="teamSizeSel"><option value="1" ${state.teamSize===1?'selected':''}>1 per team</option><option value="2" ${state.teamSize===2?'selected':''}>2 per team</option><option value="3" ${state.teamSize===3?'selected':''}>3 per team</option></select>`
+              : `<strong>${state.teamSize} per team</strong>`}
+          </div>
+          <div class="settings-row">
+            <span>Turn Timer</span>
+            ${isHost()
+              ? `<select id="timerSel"><option value="0" ${state.turnTimerSeconds===0?'selected':''}>No Limit</option><option value="15" ${state.turnTimerSeconds===15?'selected':''}>15 seconds</option><option value="30" ${state.turnTimerSeconds===30?'selected':''}>30 seconds</option><option value="60" ${state.turnTimerSeconds===60?'selected':''}>60 seconds</option></select>`
+              : `<strong>${state.turnTimerSeconds===0?'No Limit':state.turnTimerSeconds+'s'}</strong>`}
+          </div>
+          ${!isHost() ? '<div class="hint" style="margin-top:0;">Only the host can change these.</div>' : ''}
+        </div>
+
+        <div style="grid-column:1 / -1; text-align:center;">
+          ${isHost()
+            ? `<button id="startBtn" ${teamsReady && handSizeOk ? '' : 'disabled'}>Start Game</button>`
+            : `<div class="hint">Waiting for the host to start the game.</div>`}
+          ${startDisabledReason ? `<div class="hint">${startDisabledReason}</div>` : ''}
+        </div>
       </div>
     `);
-    updateConnDot();
-    const copyBtn = document.getElementById('copyBtn');
-    if(copyBtn) copyBtn.onclick = ()=>{
-      navigator.clipboard?.writeText(state.code);
-      copyBtn.textContent = 'Copied!';
-      setTimeout(()=>copyBtn.textContent='Copy code', 1200);
+
+    document.getElementById('copyBtn').onclick = () => {
+      navigator.clipboard?.writeText(url + ' — code: ' + state.code);
+      document.getElementById('copiedTag').innerHTML = '<div class="copied-tag">Copied!</div>';
     };
+    document.querySelectorAll('[data-jointeam]').forEach(el=>{
+      el.onclick = () => {
+        me().team = parseInt(el.getAttribute('data-jointeam'));
+        broadcastState(state); renderCurrent();
+      };
+    });
+    const leaveBtn = document.querySelector('[data-leave]');
+    if(leaveBtn) leaveBtn.onclick = () => { me().team = null; broadcastState(state); renderCurrent(); };
+    document.querySelectorAll('[data-remove]').forEach(el=>{
+      el.onclick = () => {
+        const sid = el.getAttribute('data-remove');
+        state.players = state.players.filter(p=>p.sessionId!==sid);
+        broadcastState(state); renderCurrent();
+      };
+    });
+    document.getElementById('avPrev').onclick = () => { cycleAvatar(-1); };
+    document.getElementById('avNext').onclick = () => { cycleAvatar(1); };
+
+    const winSel = document.getElementById('winCondSel');
+    if(winSel) winSel.onchange = () => { state.sequencesToWin = parseInt(winSel.value); broadcastState(state); renderCurrent(); };
+    const teamSizeSel = document.getElementById('teamSizeSel');
+    if(teamSizeSel) teamSizeSel.onchange = () => { state.teamSize = parseInt(teamSizeSel.value); broadcastState(state); renderCurrent(); };
+    const timerSel = document.getElementById('timerSel');
+    if(timerSel) timerSel.onchange = () => { state.turnTimerSeconds = parseInt(timerSel.value); broadcastState(state); renderCurrent(); };
+
     const startBtn = document.getElementById('startBtn');
-    if(startBtn) startBtn.onclick = startGame;
+    if(startBtn) startBtn.onclick = () => startGame();
+  }
+
+  function cycleAvatar(dir){
+    const cur = AVATARS.indexOf(me().avatar);
+    const next = (cur + dir + AVATARS.length) % AVATARS.length;
+    me().avatar = AVATARS[next];
+    broadcastState(localState);
+    renderCurrent();
   }
 
   function dealHands(state){
@@ -449,23 +598,110 @@
 
   function startGame(){
     const state = localState;
+    const active = activeTeams();
+    const seatSessionIds = [];
+    const seatTeams = [];
+    for(let slot=0; slot<state.teamSize; slot++){
+      for(const t of active){
+        const members = teamMembers(t);
+        seatSessionIds.push(members[slot].sessionId);
+        seatTeams.push(t);
+      }
+    }
+    const numPlayers = seatSessionIds.length;
+    const handSize = HAND_SIZE[numPlayers] || 5;
+    state.numPlayers = numPlayers;
+    state.seatSessionIds = seatSessionIds;
+    state.seatTeams = seatTeams;
+    state.handSize = handSize;
+    state.numTeams = active.length;
     state.deck = shuffle(buildFullDeck());
     dealHands(state);
     state.board = initBoardCells(buildBoardLayout());
     state.status = 'playing';
     state.turn = 0;
+    state.turnStartedAt = Date.now();
+    state.deadTradeUsedThisTurn = false;
+    state.sequenceCells = {}; state.sequenceCount = {};
+    for(let t=0;t<3;t++){ state.sequenceCells[t]=[]; state.sequenceCount[t]=0; }
+    state.winner = null;
+    state.log = ['Game started.'];
+    broadcastState(state);
+    renderCurrent();
+  }
+
+  function mySeat(){
+    if(!localState.seatSessionIds) return null;
+    const idx = localState.seatSessionIds.indexOf(sessionId);
+    return idx === -1 ? null : idx;
+  }
+  function nameForSeat(seat){
+    const sid = localState.seatSessionIds[seat];
+    const p = localState.players.find(pl=>pl.sessionId===sid);
+    return p ? p.name : ('Player ' + (seat+1));
+  }
+
+  function ensureTurnTicker(){
+    if(turnTickTimer) return;
+    turnTickTimer = setInterval(() => {
+      if(!localState || localState.status !== 'playing') return;
+      if(lastKnownTurn !== localState.turn){
+        if(mySeat()===localState.turn) sfxYourTurn();
+        lastKnownTurn = localState.turn;
+      }
+      const state = localState;
+      if(state.turnTimerSeconds > 0){
+        const remaining = state.turnTimerSeconds - Math.floor((Date.now()-state.turnStartedAt)/1000);
+        const key = state.turn + ':' + state.turnStartedAt;
+        if(remaining <= 0 && lastSkippedTurnKey !== key){
+          lastSkippedTurnKey = key;
+          sfxTimeout();
+          skipTurnForTimeout();
+        }
+      }
+      updateTimerDisplays();
+    }, 500);
+  }
+
+  function updateTimerDisplays(){
+    if(!localState || localState.status !== 'playing') return;
+    const state = localState;
+    document.querySelectorAll('.side-timer[data-seat]').forEach(el=>{
+      const seat = parseInt(el.getAttribute('data-seat'));
+      if(seat !== state.turn || state.turnTimerSeconds<=0){ el.textContent = ''; return; }
+      const remaining = Math.max(0, state.turnTimerSeconds - Math.floor((Date.now()-state.turnStartedAt)/1000));
+      el.textContent = remaining + 's';
+    });
+  }
+
+  function skipTurnForTimeout(){
+    const state = localState;
+    if(state.status !== 'playing') return;
+    state.log = state.log || [];
+    state.log.push(`${nameForSeat(state.turn)} ran out of time — turn skipped.`);
+    state.turn = (state.turn + 1) % state.numPlayers;
+    state.turnStartedAt = Date.now();
     state.deadTradeUsedThisTurn = false;
     broadcastState(state);
-    renderGame();
+    renderCurrent();
+  }
+
+  function faceIconFor(rank){
+    if(rank==='K') return '👑';
+    if(rank==='Q') return '👸';
+    if(rank==='J') return '🎭';
+    return null;
   }
 
   function renderGame(){
     const state = localState;
     if(state.status === 'over'){ renderGameOver(); return; }
+    ensureTurnTicker();
 
-    const myHand = state.hands[mySeat] || [];
-    const myTeam = state.seatTeams[mySeat];
-    const myTurn = state.turn === mySeat;
+    const seat = mySeat();
+    const myHand = seat!==null ? (state.hands[seat] || []) : [];
+    const myTeam = seat!==null ? state.seatTeams[seat] : null;
+    const myTurn = seat!==null && state.turn === seat;
     let selectedCode = selectedCardIdx!=null ? myHand[selectedCardIdx] : null;
 
     const boardHtml = state.board.map((cell, idx) => {
@@ -486,54 +722,81 @@
         }
       }
       if(playable) classes += ' playable';
-      let label = '';
+      let inner = '';
       if(!cell.wild){
-        const {label:rl, symbol, suit} = cardLabel(cell.card);
-        const colorClass = RED_SUITS.has(suit) ? 'card-suit-red' : 'card-suit-black';
-        label = cell.owner===null ? `<span class="${colorClass}">${rl}${symbol}</span>` : '';
-      } else {
-        label = (cell.owner===null||cell.owner===-1) ? '★' : '';
+        const {rank, label:rl, symbol, suit} = cardLabel(cell.card);
+        const colorClass = RED_SUITS.has(suit) ? 'suit-red' : 'suit-black';
+        if(cell.owner===null){
+          const face = faceIconFor(rank);
+          inner = `<span class="cell-rank ${colorClass}">${rl}${symbol}</span>` + (face ? `<span class="cell-face">${face}</span>` : `<span class="cell-face ${colorClass}">${symbol}</span>`);
+        }
+      } else if(cell.owner===null||cell.owner===-1){
+        inner = '<span class="cell-face">★</span>';
       }
-      return `<div class="${classes}" data-idx="${idx}">${chipHtml}<span>${label}</span></div>`;
+      return `<div class="${classes}" data-idx="${idx}">${chipHtml}${inner}</div>`;
     }).join('');
 
     const handHtml = myHand.map((code, i) => {
       if(code==null) return '';
-      const {label, symbol, suit} = cardLabel(code);
-      const colorClass = RED_SUITS.has(suit) ? 'card-suit-red' : 'card-suit-black';
+      const {rank, label, symbol, suit} = cardLabel(code);
+      const colorClass = RED_SUITS.has(suit) ? 'suit-red' : 'suit-black';
       const isSel = selectedCardIdx===i;
       const dead = myTurn && isDeadCard(state, code);
       const disabled = !myTurn;
+      const face = faceIconFor(rank);
       return `<div class="card ${isSel?'selected':''} ${disabled?'disabled':''} ${dead?'dead':''}" data-hand-idx="${i}" data-dead="${dead}">
-        <div class="${colorClass}" style="font-size:18px;">${label}</div>
-        <div class="sm ${colorClass}">${symbol}</div>
+        <div class="rank ${colorClass}">${label}${symbol}</div>
+        ${face ? `<div class="face-icon">${face}</div>` : `<div class="suit-icon ${colorClass}">${symbol}</div>`}
         ${dead ? `<div class="dead-badge">dead — tap to trade</div>` : ''}
       </div>`;
     }).join('');
 
-    const scoreboardHtml = Array.from({length:state.numTeams}, (_,t)=>{
-      const members = state.players.filter(p=>p.team===t).map(p=>p.name).join(' & ');
-      const active = state.seatTeams[state.turn]===t;
-      return `<div class="score-card ${active?'active':''}">
-        <div class="name"><span class="dot t${t}"></span>${members || 'Team '+TEAM_NAMES[t]}</div>
-        <div class="seqs">${state.sequenceCount[t]} / ${state.sequencesToWin}</div>
+    const sidePlayersHtml = state.seatSessionIds.map((sid, s) => {
+      const p = state.players.find(pl=>pl.sessionId===sid);
+      const active = state.turn === s;
+      return `<div class="side-player ${active?'active':''}">
+        <div class="side-avatar-ring t${state.seatTeams[s]}" style="border-color:${active?'var(--gold)':'transparent'};">${p?p.avatar:'❔'}</div>
+        <div class="side-name">${p?p.name:'?'}</div>
+        <div class="side-tags">
+          ${sid===state.hostSessionId?'<span class="tag host">HOST</span>':''}
+          ${sid===sessionId?'<span class="tag you">YOU</span>':''}
+          ${active?'<span class="tag" style="background:var(--gold-light); color:#241d06;">TURN</span>':''}
+        </div>
+        <div class="side-seq">Seq: ${state.sequenceCount[state.seatTeams[s]]}/${state.sequencesToWin}</div>
+        <div class="side-timer" data-seat="${s}"></div>
       </div>`;
     }).join('');
 
-    const turnPlayer = state.players.find(p=>p.seat===state.turn);
+    const turnPlayerName = nameForSeat(state.turn);
 
     render(`
-      <div class="game-wrap">
-        <div class="scoreboard">${scoreboardHtml}</div>
-        <div class="turn-banner ${myTurn?'mine':'theirs'}">${myTurn ? "Your turn" : (turnPlayer?.name || 'Opponent') + "'s turn"}</div>
-        <div class="my-team-note">You're playing for Team ${TEAM_NAMES[myTeam]}${state.deadTradeUsedThisTurn && myTurn ? ' · dead-card trade used this turn' : ''} · <span class="conn-dot" id="connDot" style="margin-left:4px;"></span><span id="connLabel"></span></div>
-        <div class="status-line">${selectedCode ? cardHint(selectedCode) : (myTurn ? 'Select a card from your hand to begin.' : '')}</div>
-        <div class="board" id="board">${boardHtml}</div>
-        <div class="hand-row" id="hand">${handHtml}</div>
-        <div class="hint">Cards left in deck: ${state.deck.length}</div>
+      <div class="top-bar">
+        <div></div>
+        <div class="top-bar-icons">
+          <div class="icon-btn" id="connDot" style="background:${wsConnected?'#6bd08a':'#d06b6b'}; width:10px; height:10px; padding:0;"></div>
+          <button class="icon-btn" id="settingsGearBtn">⚙️</button>
+        </div>
+      </div>
+      <div class="game-shell">
+        <div class="side-players">${sidePlayersHtml}</div>
+        <div>
+          <div class="turn-banner ${myTurn?'mine':'theirs'}">${myTurn ? "Your turn" : turnPlayerName + "'s turn"}</div>
+          ${!hintDismissed ? `<div style="text-align:center;"><div class="hint-bar">Tap a card, then tap a highlighted space to play it. <button id="hintCloseBtn">✕</button></div></div>` : ''}
+          <div class="status-line">${selectedCode ? cardHint(selectedCode) : (myTurn ? 'Select a card from your hand to begin.' : '')}</div>
+          <div class="board" id="board">${boardHtml}</div>
+          <div class="hand-row" id="hand">${handHtml}</div>
+          <div class="log-panel" id="logPanel">
+            <div class="log-title">Game Log</div>
+            ${(state.log||[]).slice(-30).reverse().map(l=>`<div class="log-line">${l}</div>`).join('')}
+          </div>
+        </div>
       </div>
     `);
-    updateConnDot();
+    updateTimerDisplays();
+
+    const hintClose = document.getElementById('hintCloseBtn');
+    if(hintClose) hintClose.onclick = () => { hintDismissed = true; renderGame(); };
+    document.getElementById('settingsGearBtn').onclick = () => { settingsModalOpen = true; renderSettingsModal(); };
 
     if(myTurn){
       document.querySelectorAll('#hand .card:not(.disabled)').forEach(el=>{
@@ -544,6 +807,7 @@
             tradeDeadCard(i);
             return;
           }
+          sfxSelect();
           selectedCardIdx = (selectedCardIdx===i) ? null : i;
           renderGame();
         };
@@ -553,6 +817,9 @@
           const idx = parseInt(el.getAttribute('data-idx'));
           playMove(idx);
         };
+      });
+      document.querySelectorAll('#board .cell:not(.playable)').forEach(el=>{
+        el.onclick = ()=>{ if(selectedCode) sfxInvalid(); };
       });
     }
   }
@@ -565,19 +832,22 @@
 
   function tradeDeadCard(handIdx){
     const state = localState;
-    const seat = mySeat;
+    const seat = mySeat();
     const hand = state.hands[seat];
     hand.splice(handIdx, 1);
     if(state.deck.length>0) hand.push(state.deck.pop());
     state.deadTradeUsedThisTurn = true;
     selectedCardIdx = null;
+    state.log = state.log || [];
+    state.log.push(`${nameForSeat(seat)} traded in a dead card.`);
+    sfxSelect();
     broadcastState(state);
     renderGame();
   }
 
   function playMove(idx){
     const state = localState;
-    const seat = mySeat;
+    const seat = mySeat();
     const myTeam = state.seatTeams[seat];
     const hand = state.hands[seat];
     const code = hand[selectedCardIdx];
@@ -597,7 +867,13 @@
     hand.splice(selectedCardIdx, 1);
     if(state.deck.length > 0) hand.push(state.deck.pop());
     selectedCardIdx = null;
+    sfxPlace();
 
+    state.log = state.log || [];
+    const {label, symbol} = cardLabel(code);
+    state.log.push(`${nameForSeat(seat)} played ${label}${symbol}.`);
+
+    let sequenced = false;
     if(cell.owner === myTeam){
       const newSeqs = findNewSequences(state.board, myTeam, idx);
       for(const seqCells of newSeqs){
@@ -605,15 +881,22 @@
         if(overlap <= 1){
           state.sequenceCells[myTeam] = state.sequenceCells[myTeam].concat(seqCells.filter(ci=>!state.sequenceCells[myTeam].includes(ci)));
           state.sequenceCount[myTeam] += 1;
+          sequenced = true;
         }
       }
+    }
+    if(sequenced){
+      sfxSequence();
+      state.log.push(`Team ${TEAM_NAMES[myTeam]} completed a sequence!`);
     }
 
     if(state.sequenceCount[myTeam] >= state.sequencesToWin){
       state.status = 'over';
       state.winner = myTeam;
+      sfxWin();
     } else {
       state.turn = (state.turn + 1) % state.numPlayers;
+      state.turnStartedAt = Date.now();
       state.deadTradeUsedThisTurn = false;
     }
 
@@ -621,23 +904,65 @@
     renderGame();
   }
 
+  function renderSettingsModal(){
+    if(!settingsModalOpen) return;
+    const state = localState;
+    const url = location.origin + location.pathname;
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal-box">
+        <div class="modal-header"><h2>Settings</h2><button class="modal-close" id="closeModalBtn">✕</button></div>
+
+        <div class="toggle-row">
+          <div><div>Sound</div><div class="toggle-sub">Toggle game sound effects</div></div>
+          <label class="switch"><input type="checkbox" id="soundToggle" ${soundOn?'checked':''}><span class="slider-toggle"></span></label>
+        </div>
+        <input type="range" class="vol-slider" id="volSlider" min="0" max="1" step="0.05" value="${masterVolume}">
+
+        <div class="modal-section-label">Game</div>
+        <div class="settings-info-row"><span>Win Condition</span><span class="val">${state.sequencesToWin===1?'First Sequence Wins':'Two Sequences to Win'}</span></div>
+        <div class="settings-info-row"><span>Turn Timer</span><span class="val">${state.turnTimerSeconds===0?'No Limit':state.turnTimerSeconds+'s'}</span></div>
+        <div class="settings-info-row"><span>Your Role</span><span class="val">${isHost()?'Host':'Player'}</span></div>
+
+        <div class="modal-section-label">Invite Link</div>
+        <div class="invite-box">${url} — code: ${state.code}</div>
+        <button class="small secondary" id="copyModalBtn">Copy</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', (e) => { if(e.target === overlay){ settingsModalOpen=false; overlay.remove(); } });
+    overlay.querySelector('#closeModalBtn').onclick = () => { settingsModalOpen=false; overlay.remove(); };
+    overlay.querySelector('#soundToggle').onchange = (e) => setSoundOn(e.target.checked);
+    overlay.querySelector('#volSlider').oninput = (e) => setVolume(parseFloat(e.target.value));
+    overlay.querySelector('#copyModalBtn').onclick = () => { navigator.clipboard?.writeText(url + ' — code: ' + state.code); };
+  }
+
   function renderGameOver(){
     const state = localState;
-    const iWon = state.winner === state.seatTeams[mySeat];
-    const winners = state.players.filter(p=>p.team===state.winner).map(p=>p.name).join(' & ');
+    const seat = mySeat();
+    const myTeam = seat!==null ? state.seatTeams[seat] : null;
+    const iWon = state.winner === myTeam;
+    const winners = state.seatSessionIds
+      .filter((sid,i)=>state.seatTeams[i]===state.winner)
+      .map(sid => state.players.find(p=>p.sessionId===sid)?.name)
+      .join(' & ');
     render(`
-      <div class="game-wrap" style="align-items:center;">
-        <div class="win-banner">${iWon ? '🏆 Your team won!' : `Team ${TEAM_NAMES[state.winner]} (${winners}) won the game.`}</div>
-        <div class="hint">Thanks for playing!</div>
+      <div style="text-align:center; max-width:600px; margin:0 auto;">
+        <div class="win-banner">🏆 Team ${TEAM_NAMES[state.winner]} wins!${iWon ? " (that's you!)" : ''}</div>
+        <div class="hint">${winners || 'That team'} completed ${state.sequencesToWin} sequence${state.sequencesToWin>1?'s':''}. Thanks for playing!</div>
         <button id="newGameBtn" style="margin-top:16px;">Back to Home</button>
       </div>
     `);
     document.getElementById('newGameBtn').onclick = ()=>{
       if(ws) { wsRoom=null; ws.close(); ws=null; }
+      if(turnTickTimer){ clearInterval(turnTickTimer); turnTickTimer=null; }
       selectedCardIdx = null;
-      mySeat = null;
       myRoomCode = '';
       localState = null;
+      lastKnownTurn = null;
+      hintDismissed = false;
+      inLobbyOrGame = false;
       screenHome();
     };
   }
