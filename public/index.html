@@ -294,7 +294,7 @@
       });
     }
     document.getElementById('createBtn').onclick = onCreate;
-    document.getElementById('joinBtn').onclick = onJoin;
+    document.getElementById('joinBtn').onclick = () => onJoin();
   }
 
   function genCode(){
