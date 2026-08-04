@@ -1,0 +1,15 @@
+{
+  "name": "sequence-live",
+  "version": "1.0.0",
+  "description": "Live multiplayer Sequence board game - WebSocket relay server, no accounts needed to play.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ws": "^8.16.0"
+  }
+}

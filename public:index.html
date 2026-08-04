@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sequence — Live</title>
+<style>
+  :root{
+    --felt-1:#0f3d2e; --felt-2:#155c43; --cream:#f2ecd8; --ink:#20241f;
+    --gold:#c9a227; --gold-light:#e6cb6a;
+    --t0:#c1622d; --t0-light:#e8926a;
+    --t1:#2b5f7a; --t1-light:#6fa7c4;
+    --t2:#8c2f2f; --t2-light:#c46b6b;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:radial-gradient(circle at 50% -10%, var(--felt-2), var(--felt-1) 65%);
+    font-family:'Iowan Old Style','Georgia',serif;
+    color:var(--cream);
+    display:flex; flex-direction:column; align-items:center;
+    padding:20px 12px 50px;
+  }
+  h1{font-weight:600; letter-spacing:.04em; font-size:26px; margin:0 0 2px; text-transform:uppercase; text-align:center;}
+  .sub{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; letter-spacing:.14em; text-transform:uppercase; opacity:.55; margin-bottom:22px; text-align:center;}
+  .panel{background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:26px 28px; max-width:440px; width:100%; text-align:center;}
+  .panel h2{margin:0 0 14px; font-size:18px; letter-spacing:.03em;}
+  .row{display:flex; gap:10px; margin-bottom:12px;}
+  input[type=text]{flex:1; font-family:'Helvetica Neue',Arial,sans-serif; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.25); color:var(--cream); border-radius:8px; padding:10px 12px; font-size:14px; outline:none;}
+  input[type=text]:focus{border-color:var(--gold);}
+  input.code-input{text-transform:uppercase; letter-spacing:.12em; text-align:center;}
+  button{font-family:'Helvetica Neue',Arial,sans-serif; font-weight:600; letter-spacing:.04em; font-size:13px; text-transform:uppercase; background:var(--gold); color:#241d06; border:none; border-radius:8px; padding:11px 18px; cursor:pointer; transition:transform .08s, background .15s;}
+  button:hover{background:var(--gold-light);}
+  button:active{transform:scale(.97);}
+  button.secondary{background:transparent; color:var(--cream); border:1px solid rgba(255,255,255,.3);}
+  button.secondary:hover{background:rgba(255,255,255,.08);}
+  button.chip-select{background:rgba(255,255,255,.08); color:var(--cream); border:1px solid rgba(255,255,255,.25); margin:4px;}
+  button.chip-select.active{background:var(--gold); color:#241d06; border-color:var(--gold);}
+  button:disabled{opacity:.4; cursor:not-allowed;}
+  .or-divider{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; letter-spacing:.1em; opacity:.45; margin:18px 0; text-transform:uppercase;}
+  .error-msg{color:#e0a5a5; font-family:'Helvetica Neue',Arial,sans-serif; font-size:12.5px; margin-top:10px;}
+  .room-code-display{font-size:34px; letter-spacing:.18em; font-weight:700; color:var(--gold-light); margin:6px 0 16px;}
+  .lobby-seats{font-family:'Helvetica Neue',Arial,sans-serif; font-size:13px; margin:14px 0; text-align:left;}
+  .lobby-seats .p{display:flex; align-items:center; gap:8px; padding:6px 10px; background:rgba(255,255,255,.06); border-radius:6px; margin-bottom:6px;}
+  .lobby-seats .p.me{border:1px solid var(--gold);}
+  .dot{width:9px; height:9px; border-radius:50%; flex-shrink:0; display:inline-block;}
+  .dot.t0{background:var(--t0);} .dot.t1{background:var(--t1);} .dot.t2{background:var(--t2);}
+  .hint{font-family:'Helvetica Neue',Arial,sans-serif; font-size:12px; opacity:.6; line-height:1.5; margin-top:14px;}
+  .setup-label{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; text-transform:uppercase; letter-spacing:.1em; opacity:.6; margin:14px 0 6px; text-align:left;}
+  .chip-select-row{display:flex; flex-wrap:wrap; justify-content:center;}
+  .conn-dot{width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px;}
+  .conn-dot.up{background:#6bd08a;} .conn-dot.down{background:#d06b6b;}
+  .conn-status{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; opacity:.6; margin-top:10px;}
+
+  .game-wrap{width:100%; max-width:780px; display:flex; flex-direction:column; align-items:center;}
+  .scoreboard{display:flex; gap:10px; margin-bottom:14px; font-family:'Helvetica Neue',Arial,sans-serif; width:100%; justify-content:center; flex-wrap:wrap;}
+  .score-card{background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:8px 14px; text-align:center; min-width:110px;}
+  .score-card.active{border-color:var(--gold); box-shadow:0 0 0 1px var(--gold) inset;}
+  .score-card .name{font-size:12px; font-weight:600; display:flex; align-items:center; gap:6px; justify-content:center;}
+  .score-card .seqs{font-size:18px; font-weight:700; margin-top:2px;}
+  .status-line{font-family:'Helvetica Neue',Arial,sans-serif; font-size:13px; margin-bottom:12px; text-align:center; min-height:18px;}
+  .board{display:grid; grid-template-columns:repeat(10, 1fr); gap:3px; background:#0a2b20; padding:8px; border-radius:10px; border:2px solid rgba(0,0,0,.4); width:100%; max-width:560px; aspect-ratio:1/1;}
+  .cell{position:relative; background:var(--cream); border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:clamp(8px,1.6vw,12px); font-weight:700; color:var(--ink); cursor:default; aspect-ratio:1/1;}
+  .cell.corner{background:linear-gradient(135deg, var(--gold-light), var(--gold)); color:#241d06;}
+  .cell.playable{cursor:pointer; box-shadow:0 0 0 2px var(--gold-light) inset;}
+  .cell.playable:hover{background:#fffbe8;}
+  .chip{position:absolute; width:68%; height:68%; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.5), 0 0 0 2px rgba(255,255,255,.5) inset;}
+  .chip.t0{background:radial-gradient(circle at 35% 30%, var(--t0-light), var(--t0));}
+  .chip.t1{background:radial-gradient(circle at 35% 30%, var(--t1-light), var(--t1));}
+  .chip.t2{background:radial-gradient(circle at 35% 30%, var(--t2-light), var(--t2));}
+  .chip.locked{box-shadow:0 1px 3px rgba(0,0,0,.5), 0 0 0 3px var(--gold-light) inset;}
+  .card-suit-red{color:#8c2f2f;} .card-suit-black{color:#20241f;}
+
+  .hand-row{display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; justify-content:center;}
+  .card{width:52px; height:74px; background:var(--cream); border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Helvetica Neue',Arial,sans-serif; font-weight:700; font-size:16px; color:var(--ink); cursor:pointer; border:2px solid transparent; transition:transform .12s; user-select:none; position:relative;}
+  .card:hover{transform:translateY(-4px);}
+  .card.selected{border-color:var(--gold); transform:translateY(-8px); box-shadow:0 4px 10px rgba(0,0,0,.4);}
+  .card .sm{font-size:10px; opacity:.7; margin-top:2px;}
+  .card.disabled{opacity:.35; cursor:not-allowed; transform:none;}
+  .card.dead{border-color:#8c2f2f;}
+  .card.dead .dead-badge{position:absolute; bottom:-9px; left:50%; transform:translateX(-50%); background:#8c2f2f; color:#fff; font-size:8px; padding:1px 5px; border-radius:8px; letter-spacing:.04em; white-space:nowrap;}
+
+  .turn-banner{font-family:'Helvetica Neue',Arial,sans-serif; font-weight:700; font-size:14px; padding:6px 14px; border-radius:20px; margin-bottom:10px;}
+  .turn-banner.mine{background:var(--gold); color:#241d06;}
+  .turn-banner.theirs{background:rgba(255,255,255,.1); color:var(--cream);}
+  .win-banner{font-size:22px; font-weight:700; color:var(--gold-light); margin:10px 0; text-align:center;}
+  .link-note{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; opacity:.5; margin-top:18px; text-align:center; max-width:440px;}
+  .copy-code-btn{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; background:none; border:1px solid rgba(255,255,255,.3); color:var(--cream); padding:4px 10px; border-radius:6px; text-transform:none; letter-spacing:0;}
+  .my-team-note{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; opacity:.6; margin-top:6px;}
+</style>
+</head>
+<body>
+<h1>Sequence</h1>
+<div class="sub">Live — no accounts needed</div>
+<div id="app"></div>
+
+<script>
+(function(){
+
+  // ---------- CONSTANTS ----------
+  const SUITS = ['S','H','D','C'];
+  const RANKS = ['2','3','4','5','6','7','8','9','10','A','K','Q'];
+  const RANK_LABEL = {'2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9','10':'10','A':'A','K':'K','Q':'Q'};
+  const SUIT_SYMBOL = {S:'♠',H:'♥',D:'♦',C:'♣'};
+  const RED_SUITS = new Set(['H','D']);
+  const TWO_EYED_JACKS = new Set(['JD','JC']);
+  const ONE_EYED_JACKS = new Set(['JH','JS']);
+  const TEAM_NAMES = ['Orange','Blue','Red'];
+  const HAND_SIZE = {2:7, 3:6, 4:6, 6:5};
+
+  function seatTeamPattern(numPlayers, teamConfig){
+    if(numPlayers===2) return [0,1];
+    if(numPlayers===3) return [0,1,2];
+    if(numPlayers===4) return [0,1,0,1];
+    if(numPlayers===6){
+      if(teamConfig==='3x2') return [0,1,2,0,1,2];
+      return [0,1,0,1,0,1];
+    }
+    return [0,1];
+  }
+  function numTeamsFor(numPlayers, teamConfig){
+    if(numPlayers===3) return 3;
+    if(numPlayers===6 && teamConfig==='3x2') return 3;
+    return 2;
+  }
+
+  function cardCode(rank, suit){ return rank+suit; }
+  function cardLabel(code){
+    const suit = code.slice(-1);
+    const rank = code.slice(0,-1);
+    return {rank, suit, label:RANK_LABEL[rank]||rank, symbol:SUIT_SYMBOL[suit]};
+  }
+  function buildFullDeck(){
+    const deck = [];
+    for(let d=0; d<2; d++){
+      for(const s of SUITS){ for(const r of [...RANKS,'J']){ deck.push(cardCode(r,s)); } }
+    }
+    return deck;
+  }
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+  function buildBoardLayout(){
+    const uniqueNonJack = [];
+    for(const s of SUITS){ for(const r of RANKS){ uniqueNonJack.push(cardCode(r,s)); } }
+    const cells96 = shuffle(uniqueNonJack.concat(uniqueNonJack));
+    const layout = new Array(100).fill(null);
+    const corners = [0,9,90,99];
+    let ptr = 0;
+    for(let i=0;i<100;i++){
+      layout[i] = corners.includes(i) ? 'WILD' : cells96[ptr++];
+    }
+    return layout;
+  }
+  function initBoardCells(layout){
+    return layout.map((card) => ({ card, wild: card==='WILD', owner: card==='WILD' ? -1 : null }));
+  }
+
+  function rowCol(idx){ return [Math.floor(idx/10), idx%10]; }
+  function idxOf(r,c){ return r*10+c; }
+
+  function findNewSequences(board, team, placedIdx){
+    const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+    const [pr,pc] = rowCol(placedIdx);
+    const found = [];
+    for(const [dr,dc] of dirs){
+      for(let offset=-4; offset<=0; offset++){
+        const cells = [];
+        let ok = true;
+        for(let k=0;k<5;k++){
+          const r = pr + dr*(offset+k), c = pc + dc*(offset+k);
+          if(r<0||r>9||c<0||c>9){ ok=false; break; }
+          cells.push(idxOf(r,c));
+        }
+        if(!ok) continue;
+        if(!cells.includes(placedIdx)) continue;
+        const allMine = cells.every(ci => board[ci].owner===team || board[ci].wild);
+        if(!allMine) continue;
+        const dup = found.some(f => f.join(',')===cells.join(','));
+        if(dup) continue;
+        found.push(cells);
+      }
+    }
+    return found;
+  }
+  function isPlayableCell(cell, code){
+    if(cell.owner !== null) return false;
+    if(cell.wild) return false;
+    return cell.card === code;
+  }
+  function isDeadCard(state, code){
+    if(TWO_EYED_JACKS.has(code) || ONE_EYED_JACKS.has(code)) return false;
+    const spots = state.board.filter(c=>c.card===code);
+    return spots.length>0 && spots.every(c=>c.owner!==null);
+  }
+  function isLocked(state, team, idx){ return state.sequenceCells[team].includes(idx); }
+
+  // ---------- WEBSOCKET ----------
+  let ws = null;
+  let wsConnected = false;
+  let wsRoom = null;
+
+  function connectWS(room, onState){
+    wsRoom = room;
+    const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+    ws = new WebSocket(proto + location.host);
+    ws.onopen = () => {
+      wsConnected = true;
+      ws.send(JSON.stringify({type:'join', room}));
+      updateConnDot();
+    };
+    ws.onclose = () => {
+      wsConnected = false;
+      updateConnDot();
+      setTimeout(()=>{ if(wsRoom) connectWS(wsRoom, onState); }, 1500); // auto-reconnect
+    };
+    ws.onerror = () => { wsConnected = false; updateConnDot(); };
+    ws.onmessage = (ev) => {
+      let msg;
+      try{ msg = JSON.parse(ev.data); }catch(e){ return; }
+      if(msg.type === 'state') onState(msg.state);
+    };
+  }
+  function broadcastState(state){
+    if(ws && wsConnected){
+      ws.send(JSON.stringify({type:'state', room: wsRoom, state}));
+    }
+  }
+  function updateConnDot(){
+    const el = document.getElementById('connDot');
+    if(!el) return;
+    el.className = 'conn-dot ' + (wsConnected ? 'up' : 'down');
+    const label = document.getElementById('connLabel');
+    if(label) label.textContent = wsConnected ? 'Connected' : 'Reconnecting...';
+  }
+
+  // ---------- APP STATE ----------
+  let sessionId = 'p_' + Math.random().toString(36).slice(2,10);
+  let myName = '';
+  let myRoomCode = '';
+  let mySeat = null;
+  let selectedCardIdx = null;
+  let localState = null; // latest known game state
+  let setupNumPlayers = 2;
+  let setupTeamConfig = '2x3';
+
+  const app = document.getElementById('app');
+  function render(html){ app.innerHTML = html; }
+
+  // ---------- HOME / SETUP ----------
+  function screenHome(){
+    render(`
+      <div class="panel">
+        <h2>Start or Join a Game</h2>
+        <div class="row"><input type="text" id="nameInput" placeholder="Your name" maxlength="18" /></div>
+
+        <div class="setup-label">Number of players</div>
+        <div class="chip-select-row" id="npRow">
+          ${[2,3,4,6].map(n=>`<button class="chip-select ${setupNumPlayers===n?'active':''}" data-np="${n}">${n} players</button>`).join('')}
+        </div>
+
+        <div id="teamConfigRow" style="${setupNumPlayers===6?'':'display:none;'}">
+          <div class="setup-label">Team setup</div>
+          <div class="chip-select-row" id="tcRow">
+            <button class="chip-select ${setupTeamConfig==='2x3'?'active':''}" data-tc="2x3">2 teams of 3</button>
+            <button class="chip-select ${setupTeamConfig==='3x2'?'active':''}" data-tc="3x2">3 teams of 2</button>
+          </div>
+        </div>
+
+        <button id="createBtn" style="margin-top:10px;">Create New Game</button>
+        <div class="or-divider">— or —</div>
+        <div class="row">
+          <input type="text" id="codeInput" class="code-input" placeholder="ROOM CODE" maxlength="5" />
+          <button id="joinBtn" class="secondary">Join</button>
+        </div>
+        <div id="errBox"></div>
+        <div class="hint">Create a game to get a room code, then send this page's link plus the code to your friends. Moves sync live — no accounts needed.</div>
+      </div>
+    `);
+    document.querySelectorAll('#npRow [data-np]').forEach(btn=>{
+      btn.onclick = ()=>{ setupNumPlayers = parseInt(btn.getAttribute('data-np')); screenHome(); };
+    });
+    const tcRow = document.getElementById('tcRow');
+    if(tcRow){
+      tcRow.querySelectorAll('[data-tc]').forEach(btn=>{
+        btn.onclick = ()=>{ setupTeamConfig = btn.getAttribute('data-tc'); screenHome(); };
+      });
+    }
+    document.getElementById('createBtn').onclick = onCreate;
+    document.getElementById('joinBtn').onclick = onJoin;
+  }
+
+  function genCode(){
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let c='';
+    for(let i=0;i<5;i++) c+= chars[Math.floor(Math.random()*chars.length)];
+    return c;
+  }
+
+  function onCreate(){
+    const name = document.getElementById('nameInput').value.trim() || 'Player 1';
+    myName = name;
+    const code = genCode();
+    const numPlayers = setupNumPlayers;
+    const teamConfig = numPlayers===6 ? setupTeamConfig : null;
+    const seatTeams = seatTeamPattern(numPlayers, teamConfig);
+    const numTeams = numTeamsFor(numPlayers, teamConfig);
+    localState = {
+      code, status: 'lobby',
+      numPlayers, teamConfig, seatTeams, numTeams,
+      handSize: HAND_SIZE[numPlayers],
+      sequencesToWin: numTeams===2 ? 2 : 1,
+      players: [{seat:0, name, sessionId, team:seatTeams[0]}],
+      hostSessionId: sessionId,
+      deck: null, hands: null, board: null,
+      turn: 0, deadTradeUsedThisTurn: false,
+      sequenceCells: {}, sequenceCount: {}, winner: null
+    };
+    for(let t=0;t<numTeams;t++){ localState.sequenceCells[t]=[]; localState.sequenceCount[t]=0; }
+    myRoomCode = code;
+    mySeat = 0;
+    connectWS(code, onRemoteState);
+    renderLobbyOrGame();
+  }
+
+  function onJoin(){
+    const name = document.getElementById('nameInput').value.trim() || 'Player';
+    const code = document.getElementById('codeInput').value.trim().toUpperCase();
+    const errBox = document.getElementById('errBox');
+    if(!code){ errBox.innerHTML = '<div class="error-msg">Enter a room code.</div>'; return; }
+    myName = name;
+    myRoomCode = code;
+    // We don't know the room's state yet until the server sends it after join.
+    // Show a brief connecting screen, then react once state arrives.
+    render(`<div class="panel"><h2>Joining ${code}...</h2><div class="hint">Connecting to the game.</div></div>`);
+    let resolved = false;
+    connectWS(code, (state) => {
+      onRemoteState(state);
+      if(!resolved){
+        resolved = true;
+        // claim a seat if not already in the game
+        const already = localState.players.find(p=>p.sessionId===sessionId);
+        if(!already){
+          if(localState.players.length >= localState.numPlayers){
+            render(`<div class="panel"><div class="error-msg">That game is full (${localState.numPlayers} players).</div><button id="backBtn" class="secondary" style="margin-top:10px;">Back</button></div>`);
+            document.getElementById('backBtn').onclick = screenHome;
+            return;
+          }
+          const seat = localState.players.length;
+          localState.players.push({seat, name, sessionId, team: localState.seatTeams[seat]});
+          mySeat = seat;
+          broadcastState(localState);
+        } else {
+          mySeat = already.seat;
+        }
+        renderLobbyOrGame();
+      }
+    });
+    setTimeout(()=>{
+      if(!resolved){
+        errBox.innerHTML = '<div class="error-msg">No response from that room. Double-check the code, or the game may not have been created yet.</div>';
+      }
+    }, 4000);
+  }
+
+  function onRemoteState(state){
+    localState = state;
+    // if we're mid-game already seated, re-render live
+    if(mySeat !== null) renderLobbyOrGame();
+  }
+
+  function renderLobbyOrGame(){
+    if(!localState) return;
+    if(localState.status === 'lobby') renderLobby();
+    else renderGame();
+  }
+
+  function renderLobby(){
+    const state = localState;
+    const canStart = state.players.length===state.numPlayers && mySeat===0;
+    const seatsHtml = [];
+    for(let s=0;s<state.numPlayers;s++){
+      const p = state.players.find(pl=>pl.seat===s);
+      const team = state.seatTeams[s];
+      seatsHtml.push(`<div class="p ${s===mySeat?'me':''}"><span class="dot t${team}"></span> ${p ? p.name : 'Waiting for a player...'} ${p?`<span style="opacity:.5; font-size:11px;">— Team ${TEAM_NAMES[team]}</span>`:''}</div>`);
+    }
+    render(`
+      <div class="panel">
+        <h2>Waiting Room</h2>
+        <div class="room-code-display">${state.code}</div>
+        <button class="copy-code-btn" id="copyBtn">Copy code</button>
+        <div class="hint" style="margin-top:10px;">${state.numPlayers} players · ${state.numTeams} team${state.numTeams>1?'s':''} · ${state.sequencesToWin} sequence${state.sequencesToWin>1?'s':''} to win · ${state.handSize}-card hands</div>
+        <div class="lobby-seats">${seatsHtml.join('')}</div>
+        ${mySeat===0
+          ? `<button id="startBtn" ${canStart?'':'disabled'}>${state.players.length===state.numPlayers ? 'Start Game' : `Waiting for ${state.numPlayers - state.players.length} more...`}</button>`
+          : `<div class="hint">Waiting for the host to start the game.</div>`
+        }
+        <div class="conn-status"><span class="conn-dot" id="connDot"></span><span id="connLabel"></span></div>
+        <div class="link-note">Share this page's link + the code above with everyone. Each person opens the same link and enters the code.</div>
+      </div>
+    `);
+    updateConnDot();
+    const copyBtn = document.getElementById('copyBtn');
+    if(copyBtn) copyBtn.onclick = ()=>{
+      navigator.clipboard?.writeText(state.code);
+      copyBtn.textContent = 'Copied!';
+      setTimeout(()=>copyBtn.textContent='Copy code', 1200);
+    };
+    const startBtn = document.getElementById('startBtn');
+    if(startBtn) startBtn.onclick = startGame;
+  }
+
+  function dealHands(state){
+    const deck = state.deck.slice();
+    const hands = {};
+    for(let s=0;s<state.numPlayers;s++) hands[s]=[];
+    for(let i=0;i<state.handSize;i++){
+      for(let s=0;s<state.numPlayers;s++){ hands[s].push(deck.pop()); }
+    }
+    state.deck = deck;
+    state.hands = hands;
+  }
+
+  function startGame(){
+    const state = localState;
+    state.deck = shuffle(buildFullDeck());
+    dealHands(state);
+    state.board = initBoardCells(buildBoardLayout());
+    state.status = 'playing';
+    state.turn = 0;
+    state.deadTradeUsedThisTurn = false;
+    broadcastState(state);
+    renderGame();
+  }
+
+  function renderGame(){
+    const state = localState;
+    if(state.status === 'over'){ renderGameOver(); return; }
+
+    const myHand = state.hands[mySeat] || [];
+    const myTeam = state.seatTeams[mySeat];
+    const myTurn = state.turn === mySeat;
+    let selectedCode = selectedCardIdx!=null ? myHand[selectedCardIdx] : null;
+
+    const boardHtml = state.board.map((cell, idx) => {
+      let classes = 'cell';
+      if(cell.wild) classes += ' corner';
+      let chipHtml = '';
+      if(cell.owner !== null && cell.owner !== -1){
+        chipHtml = `<div class="chip t${cell.owner}${isLocked(state,cell.owner,idx)?' locked':''}"></div>`;
+      }
+      let playable = false;
+      if(myTurn && selectedCode){
+        if(TWO_EYED_JACKS.has(selectedCode)){
+          playable = cell.owner===null && !cell.wild;
+        } else if(ONE_EYED_JACKS.has(selectedCode)){
+          playable = cell.owner!==null && cell.owner!==-1 && cell.owner!==myTeam && !isLocked(state, cell.owner, idx);
+        } else {
+          playable = isPlayableCell(cell, selectedCode);
+        }
+      }
+      if(playable) classes += ' playable';
+      let label = '';
+      if(!cell.wild){
+        const {label:rl, symbol, suit} = cardLabel(cell.card);
+        const colorClass = RED_SUITS.has(suit) ? 'card-suit-red' : 'card-suit-black';
+        label = cell.owner===null ? `<span class="${colorClass}">${rl}${symbol}</span>` : '';
+      } else {
+        label = (cell.owner===null||cell.owner===-1) ? '★' : '';
+      }
+      return `<div class="${classes}" data-idx="${idx}">${chipHtml}<span>${label}</span></div>`;
+    }).join('');
+
+    const handHtml = myHand.map((code, i) => {
+      if(code==null) return '';
+      const {label, symbol, suit} = cardLabel(code);
+      const colorClass = RED_SUITS.has(suit) ? 'card-suit-red' : 'card-suit-black';
+      const isSel = selectedCardIdx===i;
+      const dead = myTurn && isDeadCard(state, code);
+      const disabled = !myTurn;
+      return `<div class="card ${isSel?'selected':''} ${disabled?'disabled':''} ${dead?'dead':''}" data-hand-idx="${i}" data-dead="${dead}">
+        <div class="${colorClass}" style="font-size:18px;">${label}</div>
+        <div class="sm ${colorClass}">${symbol}</div>
+        ${dead ? `<div class="dead-badge">dead — tap to trade</div>` : ''}
+      </div>`;
+    }).join('');
+
+    const scoreboardHtml = Array.from({length:state.numTeams}, (_,t)=>{
+      const members = state.players.filter(p=>p.team===t).map(p=>p.name).join(' & ');
+      const active = state.seatTeams[state.turn]===t;
+      return `<div class="score-card ${active?'active':''}">
+        <div class="name"><span class="dot t${t}"></span>${members || 'Team '+TEAM_NAMES[t]}</div>
+        <div class="seqs">${state.sequenceCount[t]} / ${state.sequencesToWin}</div>
+      </div>`;
+    }).join('');
+
+    const turnPlayer = state.players.find(p=>p.seat===state.turn);
+
+    render(`
+      <div class="game-wrap">
+        <div class="scoreboard">${scoreboardHtml}</div>
+        <div class="turn-banner ${myTurn?'mine':'theirs'}">${myTurn ? "Your turn" : (turnPlayer?.name || 'Opponent') + "'s turn"}</div>
+        <div class="my-team-note">You're playing for Team ${TEAM_NAMES[myTeam]}${state.deadTradeUsedThisTurn && myTurn ? ' · dead-card trade used this turn' : ''} · <span class="conn-dot" id="connDot" style="margin-left:4px;"></span><span id="connLabel"></span></div>
+        <div class="status-line">${selectedCode ? cardHint(selectedCode) : (myTurn ? 'Select a card from your hand to begin.' : '')}</div>
+        <div class="board" id="board">${boardHtml}</div>
+        <div class="hand-row" id="hand">${handHtml}</div>
+        <div class="hint">Cards left in deck: ${state.deck.length}</div>
+      </div>
+    `);
+    updateConnDot();
+
+    if(myTurn){
+      document.querySelectorAll('#hand .card:not(.disabled)').forEach(el=>{
+        el.onclick = ()=>{
+          const i = parseInt(el.getAttribute('data-hand-idx'));
+          const isDead = el.getAttribute('data-dead')==='true';
+          if(isDead && !state.deadTradeUsedThisTurn){
+            tradeDeadCard(i);
+            return;
+          }
+          selectedCardIdx = (selectedCardIdx===i) ? null : i;
+          renderGame();
+        };
+      });
+      document.querySelectorAll('#board .cell.playable').forEach(el=>{
+        el.onclick = ()=>{
+          const idx = parseInt(el.getAttribute('data-idx'));
+          playMove(idx);
+        };
+      });
+    }
+  }
+
+  function cardHint(code){
+    if(TWO_EYED_JACKS.has(code)) return 'Two-eyed Jack — place a chip on any open space.';
+    if(ONE_EYED_JACKS.has(code)) return "One-eyed Jack — remove a chip belonging to any other team (not part of a completed sequence).";
+    return 'Click a highlighted space to place your chip there.';
+  }
+
+  function tradeDeadCard(handIdx){
+    const state = localState;
+    const seat = mySeat;
+    const hand = state.hands[seat];
+    hand.splice(handIdx, 1);
+    if(state.deck.length>0) hand.push(state.deck.pop());
+    state.deadTradeUsedThisTurn = true;
+    selectedCardIdx = null;
+    broadcastState(state);
+    renderGame();
+  }
+
+  function playMove(idx){
+    const state = localState;
+    const seat = mySeat;
+    const myTeam = state.seatTeams[seat];
+    const hand = state.hands[seat];
+    const code = hand[selectedCardIdx];
+    const cell = state.board[idx];
+
+    if(ONE_EYED_JACKS.has(code)){
+      if(cell.owner===null || cell.owner===-1 || cell.owner===myTeam || isLocked(state, cell.owner, idx)) return;
+      cell.owner = null;
+    } else if(TWO_EYED_JACKS.has(code)){
+      if(cell.owner !== null || cell.wild) return;
+      cell.owner = myTeam;
+    } else {
+      if(!isPlayableCell(cell, code)) return;
+      cell.owner = myTeam;
+    }
+
+    hand.splice(selectedCardIdx, 1);
+    if(state.deck.length > 0) hand.push(state.deck.pop());
+    selectedCardIdx = null;
+
+    if(cell.owner === myTeam){
+      const newSeqs = findNewSequences(state.board, myTeam, idx);
+      for(const seqCells of newSeqs){
+        const overlap = seqCells.filter(ci=>state.sequenceCells[myTeam].includes(ci)).length;
+        if(overlap <= 1){
+          state.sequenceCells[myTeam] = state.sequenceCells[myTeam].concat(seqCells.filter(ci=>!state.sequenceCells[myTeam].includes(ci)));
+          state.sequenceCount[myTeam] += 1;
+        }
+      }
+    }
+
+    if(state.sequenceCount[myTeam] >= state.sequencesToWin){
+      state.status = 'over';
+      state.winner = myTeam;
+    } else {
+      state.turn = (state.turn + 1) % state.numPlayers;
+      state.deadTradeUsedThisTurn = false;
+    }
+
+    broadcastState(state);
+    renderGame();
+  }
+
+  function renderGameOver(){
+    const state = localState;
+    const iWon = state.winner === state.seatTeams[mySeat];
+    const winners = state.players.filter(p=>p.team===state.winner).map(p=>p.name).join(' & ');
+    render(`
+      <div class="game-wrap" style="align-items:center;">
+        <div class="win-banner">${iWon ? '🏆 Your team won!' : `Team ${TEAM_NAMES[state.winner]} (${winners}) won the game.`}</div>
+        <div class="hint">Thanks for playing!</div>
+        <button id="newGameBtn" style="margin-top:16px;">Back to Home</button>
+      </div>
+    `);
+    document.getElementById('newGameBtn').onclick = ()=>{
+      if(ws) { wsRoom=null; ws.close(); ws=null; }
+      selectedCardIdx = null;
+      mySeat = null;
+      myRoomCode = '';
+      localState = null;
+      screenHome();
+    };
+  }
+
+  screenHome();
+
+})();
+</script>
+</body>
+</html>
