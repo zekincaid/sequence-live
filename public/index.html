@@ -80,7 +80,7 @@
   .invite-box{background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.2); border-radius:8px; padding:8px 10px; font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; word-break:break-all; margin-bottom:8px;}
   .copied-tag{color:var(--gold-light); font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; margin-top:4px;}
 
-  .game-shell{width:100%; max-width:1200px; display:grid; grid-template-columns:170px 1fr; gap:20px;}
+  .game-shell{width:100%; max-width:1300px; display:grid; grid-template-columns:170px 1fr; gap:20px;}
   @media (max-width:880px){ .game-shell{grid-template-columns:1fr;} }
   .side-players{display:flex; flex-direction:column; gap:14px;}
   .side-player{display:flex; flex-direction:column; align-items:center; gap:4px; opacity:.6; transition:opacity .2s;}
@@ -100,13 +100,13 @@
   .hint-bar{background:rgba(0,0,0,.4); border-radius:20px; padding:7px 14px; font-family:'Helvetica Neue',Arial,sans-serif; font-size:12px; display:inline-flex; align-items:center; gap:10px; margin:0 auto 14px; }
   .hint-bar button{background:none; border:none; color:var(--cream); opacity:.6; font-size:14px; padding:0; cursor:pointer;}
 
-  .board{display:grid; grid-template-columns:repeat(10, 1fr); gap:3px; background:#0a2b20; padding:8px; border-radius:10px; border:2px solid rgba(0,0,0,.4); width:100%; max-width:600px; aspect-ratio:1/1; margin:0 auto;}
-  .cell{position:relative; background:var(--cream); border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:clamp(9px,1.7vw,13px); font-weight:700; color:var(--ink); cursor:default; aspect-ratio:1/1; box-shadow:0 1px 2px rgba(0,0,0,.25) inset;}
+  .board{display:grid; grid-template-columns:repeat(10, 1fr); gap:4px; background:#0a2b20; padding:10px; border-radius:10px; border:2px solid rgba(0,0,0,.4); width:100%; max-width:780px; aspect-ratio:1/1; margin:0 auto;}
+  .cell{position:relative; background:var(--cream); border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:clamp(9px,1.8vw,15px); font-weight:700; color:var(--ink); cursor:default; aspect-ratio:1/1; box-shadow:0 1px 2px rgba(0,0,0,.25) inset;}
   .cell.corner{background:linear-gradient(135deg, var(--gold-light), var(--gold)); color:#241d06;}
   .cell.playable{cursor:pointer; box-shadow:0 0 0 2px var(--select-red) inset;}
   .cell.playable:hover{background:#fffdf3;}
-  .cell-rank{position:absolute; top:2px; left:3px; font-size:clamp(8px,1.3vw,11px); line-height:1; font-weight:800;}
-  .cell-face{font-size:clamp(15px,3vw,26px); font-weight:800;}
+  .cell-rank{position:absolute; top:2px; left:3px; font-size:clamp(9px,1.5vw,13px); line-height:1; font-weight:800;}
+  .cell-face{font-size:clamp(17px,3.6vw,32px); font-weight:800;}
   .chip{position:absolute; width:66%; height:66%; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.5), 0 0 0 2px rgba(255,255,255,.5) inset;}
   .chip.t0{background:radial-gradient(circle at 35% 30%, var(--t0-light), var(--t0));}
   .chip.t1{background:radial-gradient(circle at 35% 30%, var(--t1-light), var(--t1));}
@@ -174,7 +174,7 @@
   const ONE_EYED_JACKS = new Set(['JH','JS']);
   const TEAM_NAMES = ['Red','Blue','Green'];
   const HAND_SIZE = {2:7, 3:6, 4:6, 6:5, 9:4};
-  const AVATARS = ['❤️','🔥','⭐','🐉','🎯','🦊','🌙','⚡','🍀','🦁','🎲','🧊'];
+  const AVATARS = ['❤️','🔥','⭐','🐉','🎯','🦊','🌙','⚡','🍀','🦁','🎲','🧊','🤡','🛑','👻','🤖','🦄','🐸','🎃','🧙','🐢','🦋','🐳','🍉','😎','👑','🎩','🐙'];
 
   function cardCode(rank, suit){ return rank+suit; }
   function cardLabel(code){
@@ -697,18 +697,8 @@
     return null; // face cards now just show the suit symbol, colored correctly per-suit
   }
 
-  function renderGame(){
-    const state = localState;
-    if(state.status === 'over'){ renderGameOver(); return; }
-    ensureTurnTicker();
-
-    const seat = mySeat();
-    const myHand = seat!==null ? (state.hands[seat] || []) : [];
-    const myTeam = seat!==null ? state.seatTeams[seat] : null;
-    const myTurn = seat!==null && state.turn === seat;
-    let selectedCode = selectedCardIdx!=null ? myHand[selectedCardIdx] : null;
-
-    const boardHtml = state.board.map((cell, idx) => {
+  function buildBoardHtml(state, {selectedCode, myTurn, myTeam} = {}){
+    return state.board.map((cell, idx) => {
       let classes = 'cell';
       if(cell.wild) classes += ' corner';
       let chipHtml = '';
@@ -739,6 +729,20 @@
       }
       return `<div class="${classes}" data-idx="${idx}">${chipHtml}${inner}</div>`;
     }).join('');
+  }
+
+  function renderGame(){
+    const state = localState;
+    if(state.status === 'over'){ renderGameOver(); return; }
+    ensureTurnTicker();
+
+    const seat = mySeat();
+    const myHand = seat!==null ? (state.hands[seat] || []) : [];
+    const myTeam = seat!==null ? state.seatTeams[seat] : null;
+    const myTurn = seat!==null && state.turn === seat;
+    let selectedCode = selectedCardIdx!=null ? myHand[selectedCardIdx] : null;
+
+    const boardHtml = buildBoardHtml(state, {selectedCode, myTurn, myTeam});
 
     const handHtml = myHand.map((code, i) => {
       if(code==null) return '';
@@ -948,6 +952,18 @@
     overlay.querySelector('#copyModalBtn').onclick = () => { navigator.clipboard?.writeText(url + ' — code: ' + state.code); };
   }
 
+  function backToLobby(){
+    const state = localState;
+    state.status = 'lobby';
+    delete state.numPlayers; delete state.seatSessionIds; delete state.seatTeams;
+    delete state.handSize; delete state.numTeams; delete state.deck; delete state.hands;
+    delete state.board; delete state.turn; delete state.turnStartedAt;
+    delete state.deadTradeUsedThisTurn; delete state.sequenceCells; delete state.sequenceCount;
+    delete state.winner; delete state.log;
+    broadcastState(state);
+    renderCurrent();
+  }
+
   function renderGameOver(){
     const state = localState;
     const seat = mySeat();
@@ -957,14 +973,24 @@
       .filter((sid,i)=>state.seatTeams[i]===state.winner)
       .map(sid => state.players.find(p=>p.sessionId===sid)?.name)
       .join(' & ');
+    const boardHtml = buildBoardHtml(state, {});
+
     render(`
       <div style="text-align:center; max-width:600px; margin:0 auto;">
         <div class="win-banner">🏆 Team ${TEAM_NAMES[state.winner]} wins!${iWon ? " (that's you!)" : ''}</div>
         <div class="hint">${winners || 'That team'} completed ${state.sequencesToWin} sequence${state.sequencesToWin>1?'s':''}. Thanks for playing!</div>
-        <button id="newGameBtn" style="margin-top:16px;">Back to Home</button>
+        <div class="board" style="margin-top:16px;">${boardHtml}</div>
+        <div style="margin-top:18px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+          ${isHost()
+            ? `<button id="lobbyBtn">Back to Lobby (Play Again)</button>`
+            : `<div class="hint" style="margin-top:0;">Waiting for the host to return everyone to the lobby.</div>`}
+          <button id="leaveBtn" class="secondary">Leave Game</button>
+        </div>
       </div>
     `);
-    document.getElementById('newGameBtn').onclick = ()=>{
+    const lobbyBtn = document.getElementById('lobbyBtn');
+    if(lobbyBtn) lobbyBtn.onclick = () => backToLobby();
+    document.getElementById('leaveBtn').onclick = ()=>{
       if(ws) { wsRoom=null; ws.close(); ws=null; }
       if(turnTickTimer){ clearInterval(turnTickTimer); turnTickTimer=null; }
       selectedCardIdx = null;
