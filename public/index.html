@@ -103,7 +103,7 @@
   .board{display:grid; grid-template-columns:repeat(10, 1fr); gap:3px; background:#0a2b20; padding:8px; border-radius:10px; border:2px solid rgba(0,0,0,.4); width:100%; max-width:600px; aspect-ratio:1/1; margin:0 auto;}
   .cell{position:relative; background:var(--cream); border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:clamp(9px,1.7vw,13px); font-weight:700; color:var(--ink); cursor:default; aspect-ratio:1/1; box-shadow:0 1px 2px rgba(0,0,0,.25) inset;}
   .cell.corner{background:linear-gradient(135deg, var(--gold-light), var(--gold)); color:#241d06;}
-  .cell.playable{cursor:pointer; box-shadow:0 0 0 2px var(--gold-light) inset;}
+  .cell.playable{cursor:pointer; box-shadow:0 0 0 2px var(--select-red) inset;}
   .cell.playable:hover{background:#fffdf3;}
   .cell-rank{position:absolute; top:2px; left:3px; font-size:clamp(7px,1.1vw,10px); line-height:1;}
   .cell-face{font-size:clamp(11px,2.2vw,18px);}
@@ -691,10 +691,7 @@
   }
 
   function faceIconFor(rank){
-    if(rank==='K') return '👑';
-    if(rank==='Q') return '👸';
-    if(rank==='J') return '🎭';
-    return null;
+    return null; // face cards now just show the suit symbol, colored correctly per-suit
   }
 
   function renderGame(){
