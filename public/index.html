@@ -45,7 +45,9 @@
   .error-msg{color:#e0a5a5; font-family:'Helvetica Neue',Arial,sans-serif; font-size:12.5px; margin-top:10px;}
   .hint{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11.5px; opacity:.6; line-height:1.5; margin-top:12px;}
   .dot{width:9px; height:9px; border-radius:50%; flex-shrink:0; display:inline-block;}
-  .dot.t0{background:var(--t0);} .dot.t1{background:var(--t1);} .dot.t2{background:var(--t2);}
+  .dot.t0{background:var(--t0); border-radius:50%;}
+  .dot.t1{background:var(--t1); border-radius:2px;}
+  .dot.t2{background:var(--t2); clip-path:polygon(50% 0%, 0% 100%, 100% 100%);}
 
   .lobby-wrap{width:100%; max-width:960px; display:grid; grid-template-columns:1fr 1fr; gap:18px;}
   @media (max-width:760px){ .lobby-wrap{grid-template-columns:1fr;} }
@@ -81,13 +83,25 @@
   .copied-tag{color:var(--gold-light); font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; margin-top:4px;}
 
   .game-shell{width:100%; max-width:1300px; display:grid; grid-template-columns:170px 1fr; gap:20px;}
-  @media (max-width:880px){ .game-shell{grid-template-columns:1fr;} }
+  @media (max-width:880px){
+    .game-shell{grid-template-columns:1fr;}
+    .side-players{flex-direction:row; flex-wrap:wrap; justify-content:center; gap:10px 16px;}
+  }
+  @media (max-width:480px){
+    body{padding:12px 6px 40px;}
+    .card-block{padding:12px 10px;}
+    .card{width:52px; height:74px;}
+    .card .rank{font-size:16px;}
+    .card .suit-icon{font-size:18px;}
+    .hand-row{gap:6px;}
+  }
   .side-players{display:flex; flex-direction:column; gap:14px;}
   .side-player{display:flex; flex-direction:column; align-items:center; gap:4px; opacity:.6; transition:opacity .2s;}
   .side-player.active{opacity:1;}
   .side-avatar-ring{width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:26px; background:rgba(255,255,255,.06); border:3px solid transparent;}
   .side-player.active .side-avatar-ring{border-color:var(--gold); box-shadow:0 0 14px rgba(201,162,39,.6);}
   .side-name{font-family:'Helvetica Neue',Arial,sans-serif; font-size:12px; font-weight:600; text-align:center;}
+  .side-team-label{font-family:'Helvetica Neue',Arial,sans-serif; font-size:10px; opacity:.8; display:flex; align-items:center; gap:4px;}
   .side-tags{display:flex; gap:4px; flex-wrap:wrap; justify-content:center;}
   .side-seq{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; opacity:.8;}
   .side-timer{font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; font-weight:700; color:var(--gold-light);}
@@ -107,11 +121,19 @@
   .cell.playable:hover{background:#fffdf3;}
   .cell-rank{position:absolute; top:2px; left:3px; font-size:clamp(9px,1.5vw,13px); line-height:1; font-weight:800;}
   .cell-face{font-size:clamp(17px,3.6vw,32px); font-weight:800;}
-  .chip{position:absolute; width:66%; height:66%; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.5), 0 0 0 2px rgba(255,255,255,.5) inset;}
+  .chip{position:absolute; width:66%; height:66%; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.5), 0 0 0 2px rgba(255,255,255,.5) inset; display:flex; align-items:center; justify-content:center;}
   .chip.t0{background:radial-gradient(circle at 35% 30%, var(--t0-light), var(--t0));}
   .chip.t1{background:radial-gradient(circle at 35% 30%, var(--t1-light), var(--t1));}
   .chip.t2{background:radial-gradient(circle at 35% 30%, var(--t2-light), var(--t2));}
+  .chip::after{content:''; width:38%; height:38%; background:rgba(255,255,255,.85);}
+  .chip.t0::after{border-radius:50%;}
+  .chip.t1::after{border-radius:2px;}
+  .chip.t2::after{clip-path:polygon(50% 0%, 0% 100%, 100% 100%);}
   .chip.locked{box-shadow:0 1px 3px rgba(0,0,0,.5), 0 0 0 3px var(--gold-light) inset;}
+  @keyframes chipPop{ 0%{transform:scale(0); opacity:0;} 65%{transform:scale(1.18);} 100%{transform:scale(1); opacity:1;} }
+  .chip.just-placed{animation:chipPop .32s ease-out;}
+  @keyframes seqGlow{ 0%,100%{box-shadow:0 1px 3px rgba(0,0,0,.5), 0 0 0 3px var(--gold-light) inset;} 50%{box-shadow:0 0 10px 4px var(--gold-light), 0 0 0 3px var(--gold) inset;} }
+  .cell.just-sequenced .chip{animation:seqGlow 1s ease-in-out 3;}
   .suit-red{color:#a83232;} .suit-black{color:#20241f;}
 
   .hand-row{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; justify-content:center;}
@@ -322,7 +344,13 @@
     el.style.background = wsConnected ? '#6bd08a' : '#d06b6b';
   }
 
-  let sessionId = 'p_' + Math.random().toString(36).slice(2,10);
+  let sessionId = (function(){
+    try{
+      let sid = localStorage.getItem('seq_session_id');
+      if(!sid){ sid = 'p_' + Math.random().toString(36).slice(2,10); localStorage.setItem('seq_session_id', sid); }
+      return sid;
+    }catch(e){ return 'p_' + Math.random().toString(36).slice(2,10); }
+  })();
   let myName = '';
   let myRoomCode = '';
   let localState = null;
@@ -338,10 +366,13 @@
   function render(html){ app.innerHTML = html; }
 
   function screenHome(){
+    let lastRoom = null, lastName = null;
+    try{ lastRoom = localStorage.getItem('seq_last_room'); lastName = localStorage.getItem('seq_last_name'); }catch(e){}
     render(`
       <div class="panel">
         <h2>Start or Join a Game</h2>
-        <div class="row"><input type="text" id="nameInput" placeholder="Your name" maxlength="18" /></div>
+        ${lastRoom ? `<div class="hint" style="margin-top:0; margin-bottom:12px;">Got disconnected from <strong>${lastRoom}</strong>? <button id="rejoinBtn" class="small secondary" style="margin-top:6px;">Rejoin that game</button></div>` : ''}
+        <div class="row"><input type="text" id="nameInput" placeholder="Your name" maxlength="18" value="${lastName?lastName.replace(/"/g,''):''}" /></div>
         <button id="createBtn">Create New Game</button>
         <div class="or-divider">— or —</div>
         <div class="row">
@@ -354,6 +385,8 @@
     `);
     document.getElementById('createBtn').onclick = () => onCreate();
     document.getElementById('joinBtn').onclick = () => onJoin();
+    const rejoinBtn = document.getElementById('rejoinBtn');
+    if(rejoinBtn) rejoinBtn.onclick = () => { myName = lastName || 'Player'; onJoin(lastRoom); };
   }
 
   function genCode(){
@@ -375,6 +408,7 @@
     };
     myRoomCode = code;
     inLobbyOrGame = true;
+    try{ localStorage.setItem('seq_last_room', code); localStorage.setItem('seq_last_name', name); }catch(e){}
     connectWS(code, onRemoteState, () => { if(localState) broadcastState(localState); });
     renderCurrent();
   }
@@ -416,6 +450,7 @@
           broadcastState(localState);
         }
         inLobbyOrGame = true;
+        try{ localStorage.setItem('seq_last_room', code); localStorage.setItem('seq_last_name', name); }catch(e){}
         renderCurrent();
       } else {
         onRemoteState(state);
@@ -436,6 +471,38 @@
   function me(){ return localState.players.find(p=>p.sessionId===sessionId); }
   function isHost(){ return localState.hostSessionId === sessionId; }
 
+  function leaveRoomGracefully(){
+    if(localState){
+      const wasHost = isHost();
+      localState.players = localState.players.filter(p=>p.sessionId!==sessionId);
+      if(wasHost && localState.players.length > 0){
+        localState.hostSessionId = localState.players[0].sessionId;
+        localState.log = localState.log || [];
+        localState.log.push(`${localState.players[0].name} is now the host.`);
+      }
+      if(localState.players.length > 0) broadcastState(localState);
+    }
+    if(ws) { wsRoom=null; ws.close(); ws=null; }
+    if(turnTickTimer){ clearInterval(turnTickTimer); turnTickTimer=null; }
+    selectedCardIdx = null;
+    myRoomCode = '';
+    localState = null;
+    lastKnownTurn = null;
+    hintDismissed = false;
+    inLobbyOrGame = false;
+    try{ localStorage.removeItem('seq_last_room'); }catch(e){}
+    screenHome();
+  }
+
+  function makeHost(targetSessionId){
+    localState.hostSessionId = targetSessionId;
+    const p = localState.players.find(pl=>pl.sessionId===targetSessionId);
+    localState.log = localState.log || [];
+    if(p) localState.log.push(`${p.name} is now the host.`);
+    broadcastState(localState);
+    renderCurrent();
+  }
+
   function renderCurrent(){
     if(!localState) return;
     if(localState.status === 'lobby') renderLobby();
@@ -455,7 +522,7 @@
         <span>${p.name}</span>
         ${p.sessionId===state.hostSessionId ? '<span class="tag host">HOST</span>' : ''}
         ${p.sessionId===sessionId ? '<span class="tag you">YOU</span>' : ''}
-        ${isHost() && p.sessionId!==sessionId ? `<button class="remove-btn" data-remove="${p.sessionId}">Remove</button>` : ''}
+        ${isHost() && p.sessionId!==sessionId ? `<button class="remove-btn" data-makehost="${p.sessionId}" style="color:var(--gold-light); margin-left:auto;">Make Host</button><button class="remove-btn" data-remove="${p.sessionId}">Remove</button>` : ''}
       </div>
     `).join('');
 
@@ -547,9 +614,15 @@
             ? `<button id="startBtn" ${teamsReady && handSizeOk ? '' : 'disabled'}>Start Game</button>`
             : `<div class="hint">Waiting for the host to start the game.</div>`}
           ${startDisabledReason ? `<div class="hint">${startDisabledReason}</div>` : ''}
+          <div style="margin-top:12px;"><button id="leaveLobbyBtn" class="secondary small">Leave Room</button></div>
         </div>
       </div>
     `);
+
+    document.getElementById('leaveLobbyBtn').onclick = () => leaveRoomGracefully();
+    document.querySelectorAll('[data-makehost]').forEach(el=>{
+      el.onclick = () => makeHost(el.getAttribute('data-makehost'));
+    });
 
     document.getElementById('copyBtn').onclick = () => {
       navigator.clipboard?.writeText(url + ' — code: ' + state.code);
@@ -633,6 +706,8 @@
     for(let t=0;t<3;t++){ state.sequenceCells[t]=[]; state.sequenceCount[t]=0; }
     state.winner = null;
     state.log = ['Game started.'];
+    state.lastPlacedIdx = null;
+    state.lastSequenceCells = null;
     broadcastState(state);
     renderCurrent();
   }
@@ -663,7 +738,7 @@
         if(remaining <= 0 && lastSkippedTurnKey !== key){
           lastSkippedTurnKey = key;
           sfxTimeout();
-          skipTurnForTimeout();
+          skipCurrentTurn(`${nameForSeat(state.turn)} ran out of time — turn skipped.`);
         }
       }
       updateTimerDisplays();
@@ -681,14 +756,16 @@
     });
   }
 
-  function skipTurnForTimeout(){
+  function skipCurrentTurn(reasonText){
     const state = localState;
     if(state.status !== 'playing') return;
     state.log = state.log || [];
-    state.log.push(`${nameForSeat(state.turn)} ran out of time — turn skipped.`);
+    state.log.push(reasonText || `${nameForSeat(state.turn)}'s turn was skipped.`);
     state.turn = (state.turn + 1) % state.numPlayers;
     state.turnStartedAt = Date.now();
     state.deadTradeUsedThisTurn = false;
+    state.lastPlacedIdx = null;
+    state.lastSequenceCells = null;
     broadcastState(state);
     renderCurrent();
   }
@@ -701,9 +778,10 @@
     return state.board.map((cell, idx) => {
       let classes = 'cell';
       if(cell.wild) classes += ' corner';
+      if(state.lastSequenceCells && state.lastSequenceCells.includes(idx)) classes += ' just-sequenced';
       let chipHtml = '';
       if(cell.owner !== null && cell.owner !== -1){
-        chipHtml = `<div class="chip t${cell.owner}${isLocked(state,cell.owner,idx)?' locked':''}"></div>`;
+        chipHtml = `<div class="chip t${cell.owner}${isLocked(state,cell.owner,idx)?' locked':''}${state.lastPlacedIdx===idx?' just-placed':''}"></div>`;
       }
       let playable = false;
       if(myTurn && selectedCode){
@@ -773,8 +851,9 @@
       const p = state.players.find(pl=>pl.sessionId===sid);
       const active = state.turn === s;
       return `<div class="side-player ${active?'active':''}">
-        <div class="side-avatar-ring t${state.seatTeams[s]}" style="border-color:${active?'var(--gold)':'transparent'};">${p?p.avatar:'❔'}</div>
+        <div class="side-avatar-ring" style="border-color:${active?'var(--gold)':'transparent'};">${p?p.avatar:'❔'}</div>
         <div class="side-name">${p?p.name:'?'}</div>
+        <div class="side-team-label"><span class="dot t${state.seatTeams[s]}"></span> Team ${TEAM_NAMES[state.seatTeams[s]]}</div>
         <div class="side-tags">
           ${sid===state.hostSessionId?'<span class="tag host">HOST</span>':''}
           ${sid===sessionId?'<span class="tag you">YOU</span>':''}
@@ -799,6 +878,7 @@
         <div class="side-players">${sidePlayersHtml}</div>
         <div>
           <div class="turn-banner ${myTurn?'mine':'theirs'}">${myTurn ? "Your turn" : turnPlayerName + "'s turn"}</div>
+          ${isHost() && !myTurn ? `<div style="text-align:center; margin-bottom:8px;"><button id="hostSkipBtn" class="small secondary">Skip ${turnPlayerName}'s Turn</button></div>` : ''}
           ${!hintDismissed ? `<div style="text-align:center;"><div class="hint-bar">Tap a card, then tap a highlighted space to play it. <button id="hintCloseBtn">✕</button></div></div>` : ''}
           <div class="status-line">${selectedCode ? cardHint(selectedCode) : (myTurn ? 'Select a card from your hand to begin.' : '')}</div>
           <div class="board" id="board">${boardHtml}</div>
@@ -815,6 +895,12 @@
     const hintClose = document.getElementById('hintCloseBtn');
     if(hintClose) hintClose.onclick = () => { hintDismissed = true; renderGame(); };
     document.getElementById('settingsGearBtn').onclick = () => { settingsModalOpen = true; renderSettingsModal(); };
+    const hostSkipBtn = document.getElementById('hostSkipBtn');
+    if(hostSkipBtn) hostSkipBtn.onclick = () => {
+      if(confirm(`Skip ${turnPlayerName}'s turn? Use this if they seem to have disconnected.`)){
+        skipCurrentTurn(`Host skipped ${turnPlayerName}'s turn.`);
+      }
+    };
 
     if(myTurn){
       document.querySelectorAll('#hand .card:not(.disabled)').forEach(el=>{
@@ -855,6 +941,8 @@
     hand.splice(handIdx, 1);
     if(state.deck.length>0) hand.push(state.deck.pop());
     state.deadTradeUsedThisTurn = true;
+    state.lastPlacedIdx = null;
+    state.lastSequenceCells = null;
     selectedCardIdx = null;
     state.log = state.log || [];
     state.log.push(`${nameForSeat(seat)} traded in a dead card.`);
@@ -871,6 +959,9 @@
     const code = hand[selectedCardIdx];
     const cell = state.board[idx];
 
+    state.lastSequenceCells = null;
+    const wasRemoval = ONE_EYED_JACKS.has(code);
+
     if(ONE_EYED_JACKS.has(code)){
       if(cell.owner===null || cell.owner===-1 || cell.owner===myTeam || isLocked(state, cell.owner, idx)) return;
       cell.owner = null;
@@ -881,6 +972,8 @@
       if(!isPlayableCell(cell, code)) return;
       cell.owner = myTeam;
     }
+
+    state.lastPlacedIdx = wasRemoval ? null : idx;
 
     hand.splice(selectedCardIdx, 1);
     if(state.deck.length > 0) hand.push(state.deck.pop());
@@ -900,6 +993,7 @@
           state.sequenceCells[myTeam] = state.sequenceCells[myTeam].concat(seqCells.filter(ci=>!state.sequenceCells[myTeam].includes(ci)));
           state.sequenceCount[myTeam] += 1;
           sequenced = true;
+          state.lastSequenceCells = seqCells;
         }
       }
     }
@@ -994,17 +1088,7 @@
     `);
     const lobbyBtn = document.getElementById('lobbyBtn');
     if(lobbyBtn) lobbyBtn.onclick = () => backToLobby();
-    document.getElementById('leaveBtn').onclick = ()=>{
-      if(ws) { wsRoom=null; ws.close(); ws=null; }
-      if(turnTickTimer){ clearInterval(turnTickTimer); turnTickTimer=null; }
-      selectedCardIdx = null;
-      myRoomCode = '';
-      localState = null;
-      lastKnownTurn = null;
-      hintDismissed = false;
-      inLobbyOrGame = false;
-      screenHome();
-    };
+    document.getElementById('leaveBtn').onclick = () => leaveRoomGracefully();
   }
 
   screenHome();
